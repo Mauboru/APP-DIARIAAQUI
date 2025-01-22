@@ -1,15 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TextInput, Button, Alert } from 'react-native';
 
 export default function Home() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [editing, setEditing] = useState(null);
 
   useEffect(() => {
-    fetch('http://192.168.0.126:3000/clients')
+    fetch('http://85.31.63.241:3001/clients')
       .then(response => response.json())
       .then(json => {
-        console.log(json);
         setData(json);
         setLoading(false);
       })
@@ -19,20 +22,120 @@ export default function Home() {
       });
   }, []);
 
+  const handleAddClient = () => {
+    const newClient = { name, email, phone };
+    fetch('http://85.31.63.241:3001/clients', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newClient),
+    })
+      .then(response => response.json())
+      .then(client => {
+        setData(prevData => [...prevData, client]);
+        setName('');
+        setEmail('');
+        setPhone('');
+      })
+      .catch(error => console.error('Erro ao adicionar cliente:', error));
+  };
+
+  const handleEditClient = () => {
+    const updatedClient = { name, email, phone };
+    fetch(`http://85.31.63.241:3001/clients/${editing}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedClient),
+    })
+      .then(response => response.json())
+      .then(client => {
+        setData(prevData =>
+          prevData.map(item => (item.id === editing ? client : item))
+        );
+        setEditing(null);
+        setName('');
+        setEmail('');
+        setPhone('');
+      })
+      .catch(error => console.error('Erro ao editar cliente:', error));
+  };
+
+  const handleDeleteClient = (id) => {
+    fetch(`http://85.31.63.241:3001/clients/${id}`, {
+      method: 'DELETE',
+    })
+      .then(() => {
+        setData(prevData => prevData.filter(item => item.id !== id));
+      })
+      .catch(error => console.error('Erro ao deletar cliente:', error));
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Home</Text>
+      <Text style={styles.header}>Tela de teste para conexão com API</Text>
+      <TextInput
+        style={styles.input}
+        value={name}
+        onChangeText={setName}
+        placeholder="Nome"
+      />
+      <TextInput
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="E-mail"
+      />
+      <TextInput
+        style={styles.input}
+        value={phone}
+        onChangeText={setPhone}
+        placeholder="Telefone"
+      />
+      <Button
+        title={editing ? 'Editar Cliente' : 'Adicionar Cliente'}
+        onPress={editing ? handleEditClient : handleAddClient}
+      />
+
       {loading ? (
         <Text style={styles.loading}>Carregando...</Text>
       ) : (
         <FlatList
+          style={styles.flatList}
           data={data}
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={item => item.id.toString()}
           renderItem={({ item }) => (
             <View style={styles.item}>
-              <Text style={styles.title}>{item.name || 'Sem Nome'}</Text>
-              <Text>{item.email || 'Sem Email'}</Text>
-              <Text>{item.phone || 'Sem Telefone'}</Text>
+              <Text style={styles.title}>{item.name}</Text>
+              <Text>{item.email}</Text>
+              <Text>{item.phone}</Text>
+              <View style={styles.buttonContainer}>
+                <Button
+                  title="Editar"
+                  onPress={() => {
+                    setEditing(item.id);
+                    setName(item.name);
+                    setEmail(item.email);
+                    setPhone(item.phone);
+                  }}
+                />
+                <Button
+                  title="Deletar"
+                  color="red"
+                  onPress={() => {
+                    Alert.alert(
+                      'Confirmar Exclusão',
+                      'Tem certeza que deseja excluir este cliente?',
+                      [
+                        { text: 'Cancelar' },
+                        { text: 'Deletar', onPress: () => handleDeleteClient(item.id) },
+                      ]
+                    );
+                  }}
+                />
+              </View>
             </View>
           )}
         />
@@ -47,6 +150,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#38a69d',
     padding: 20,
   },
+  flatList:{
+    paddingTop: 10,
+  },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -57,6 +163,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#fff',
   },
+  input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    backgroundColor: '#fff',
+  },
   item: {
     backgroundColor: '#fff',
     padding: 15,
@@ -66,5 +180,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
   },
 });
