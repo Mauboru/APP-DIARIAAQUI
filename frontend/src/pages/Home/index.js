@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, Button, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, Button, Alert, ScrollView } from 'react-native';
 
 export default function Home() {
   const [data, setData] = useState([]);
@@ -8,16 +8,19 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [editing, setEditing] = useState(null);
+  const [apiResponse, setApiResponse] = useState(''); // Para armazenar o que a API retorna
 
   useEffect(() => {
     fetch('http://85.31.63.241:3001/clients')
       .then(response => response.json())
       .then(json => {
         setData(json);
+        setApiResponse(JSON.stringify(json, null, 2)); // Captura a resposta para exibir
         setLoading(false);
       })
       .catch(error => {
         console.error(error);
+        setApiResponse(`Erro ao carregar: ${error.message}`);
         setLoading(false);
       });
   }, []);
@@ -34,11 +37,15 @@ export default function Home() {
       .then(response => response.json())
       .then(client => {
         setData(prevData => [...prevData, client]);
+        setApiResponse(JSON.stringify(client, null, 2)); // Captura a resposta para exibir
         setName('');
         setEmail('');
         setPhone('');
       })
-      .catch(error => console.error('Erro ao adicionar cliente:', error));
+      .catch(error => {
+        console.error('Erro ao adicionar cliente:', error);
+        setApiResponse(`Erro ao adicionar: ${error.message}`);
+      });
   };
 
   const handleEditClient = () => {
@@ -55,12 +62,16 @@ export default function Home() {
         setData(prevData =>
           prevData.map(item => (item.id === editing ? client : item))
         );
+        setApiResponse(JSON.stringify(client, null, 2)); // Captura a resposta para exibir
         setEditing(null);
         setName('');
         setEmail('');
         setPhone('');
       })
-      .catch(error => console.error('Erro ao editar cliente:', error));
+      .catch(error => {
+        console.error('Erro ao editar cliente:', error);
+        setApiResponse(`Erro ao editar: ${error.message}`);
+      });
   };
 
   const handleDeleteClient = (id) => {
@@ -69,8 +80,12 @@ export default function Home() {
     })
       .then(() => {
         setData(prevData => prevData.filter(item => item.id !== id));
+        setApiResponse(`Cliente ${id} deletado com sucesso`);
       })
-      .catch(error => console.error('Erro ao deletar cliente:', error));
+      .catch(error => {
+        console.error('Erro ao deletar cliente:', error);
+        setApiResponse(`Erro ao deletar: ${error.message}`);
+      });
   };
 
   return (
@@ -140,6 +155,11 @@ export default function Home() {
           )}
         />
       )}
+
+      <ScrollView style={styles.responseContainer}>
+        <Text style={styles.responseHeader}>Resposta da API:</Text>
+        <Text style={styles.responseText}>{apiResponse}</Text>
+      </ScrollView>
     </View>
   );
 }
@@ -150,7 +170,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#38a69d',
     padding: 20,
   },
-  flatList:{
+  flatList: {
     paddingTop: 10,
   },
   header: {
@@ -185,5 +205,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
+  },
+  responseContainer: {
+    marginTop: 20,
+    backgroundColor: '#f9f9f9',
+    padding: 10,
+    borderRadius: 8,
+    maxHeight: 200,
+  },
+  responseHeader: {
+    fontWeight: 'bold',
+    marginBottom: 5,
+    fontSize: 16,
+  },
+  responseText: {
+    fontSize: 14,
+    color: '#333',
   },
 });
