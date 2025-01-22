@@ -9,7 +9,20 @@ dotenv.config();
 
 const app = express(); 
 
-app.use(cors());
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || "*";
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (origin?.startsWith("http://192.168.")) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+  })
+);
+
 app.use(express.static(path.join(__dirname, "../public")));
 
 app.use(express.json());
