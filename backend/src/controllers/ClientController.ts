@@ -17,6 +17,7 @@ export const getClients = async (req: Request, res: Response) => {
     const clients = await Client.findAll();
     res.status(200).json(clients);
   } catch (error) {
+    console.error('Erro ao listar clientes:', error); // Log detalhado do erro
     res.status(500).json({ error: 'Erro ao listar clientes.' });
   }
 };
