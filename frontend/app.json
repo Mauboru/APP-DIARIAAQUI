@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "backend",
+    "name": "Diaria Aqui",
     "slug": "backend",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,10 +17,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/logo.png"
       },
-      "package": "com.mauboru.backend"
+      "package": "com.mauboru.diariaaqui"
     },
     "web": {
       "favicon": "./assets/favicon.png"
