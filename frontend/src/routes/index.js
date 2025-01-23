@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import Welcome from '../pages/Welcome';
 import SignIn from '../pages/SignIn';
+import ApiTest from '../pages/ApiTest';
 import Home from '../pages/Home';
 
 const Stack = createNativeStackNavigator();
@@ -21,6 +22,11 @@ export default function Routes(){
                 options={{ headerShown: false }}
             />
 
+            <Stack.Screen
+                name="ApiTest"
+                component={ApiTest}
+                options={{ headerShown: false }}
+            />
             <Stack.Screen
                 name="Home"
                 component={Home}

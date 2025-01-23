@@ -1,11 +1,14 @@
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function Welcome() {
+  const { theme } = useTheme();
   const navigation = useNavigation();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container , { backgroundColor: theme.background }]}>
       <View style={styles.containerLogo}>
         <Animatable.Image
           animation="flipInX"
@@ -29,8 +32,7 @@ export default function Welcome() {
 
 const styles = StyleSheet.create({
   container:{
-    flex: 1,
-    backgroundColor: '#38a69d'
+    flex: 1
   },
   containerLogo:{
     flex: 2,
