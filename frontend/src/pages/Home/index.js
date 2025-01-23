@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, Button, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, Button, Alert } from 'react-native';
 
 export default function Home() {
   const [data, setData] = useState([]);
@@ -8,14 +8,14 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [editing, setEditing] = useState(null);
-  const [apiResponse, setApiResponse] = useState(''); // Para armazenar o que a API retorna
+  const [apiResponse, setApiResponse] = useState('');
 
   useEffect(() => {
     fetch('http://85.31.63.241:3001/clients')
       .then(response => response.json())
       .then(json => {
         setData(json);
-        setApiResponse(JSON.stringify(json, null, 2)); // Captura a resposta para exibir
+        setApiResponse(JSON.stringify(json, null, 2)); 
         setLoading(false);
       })
       .catch(error => {
@@ -37,7 +37,7 @@ export default function Home() {
       .then(response => response.json())
       .then(client => {
         setData(prevData => [...prevData, client]);
-        setApiResponse(JSON.stringify(client, null, 2)); // Captura a resposta para exibir
+        setApiResponse(JSON.stringify(client, null, 2)); 
         setName('');
         setEmail('');
         setPhone('');
@@ -62,7 +62,7 @@ export default function Home() {
         setData(prevData =>
           prevData.map(item => (item.id === editing ? client : item))
         );
-        setApiResponse(JSON.stringify(client, null, 2)); // Captura a resposta para exibir
+        setApiResponse(JSON.stringify(client, null, 2));
         setEditing(null);
         setName('');
         setEmail('');
@@ -155,11 +155,6 @@ export default function Home() {
           )}
         />
       )}
-
-      <ScrollView style={styles.responseContainer}>
-        <Text style={styles.responseHeader}>Resposta da API:</Text>
-        <Text style={styles.responseText}>{apiResponse}</Text>
-      </ScrollView>
     </View>
   );
 }

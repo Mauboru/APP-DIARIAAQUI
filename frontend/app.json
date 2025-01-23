@@ -16,14 +16,26 @@
       "supportsTablet": true
     },
     "android": {
+      "useCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png"
       },
       "package": "com.mauboru.diariaaqui"
-    },
+    },  
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "8d32fffb-a2d8-4d45-9639-1dfb4565dd40"
