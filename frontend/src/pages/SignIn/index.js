@@ -1,86 +1,129 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
+import axios from 'axios';
 
 export default function SignIn() {
   const navigation = useNavigation();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://85.31.63.241:3001/login', {
+        email,
+        password,
+      });
+
+      if (response.status === 200) {
+        Alert.alert('Sucesso', response.data.message);
+        navigation.navigate('Home');
+      }
+    } catch (error) {
+      console.error(error);
+      if (error.response && error.response.status === 401) {
+        Alert.alert('Erro', 'Email ou senha incorretos.');
+      } else {
+        Alert.alert('Erro', 'Erro ao tentar fazer login. Tente novamente.');
+      }
+    }
+  };
+
   return (
     <View style={styles.container}>
-        <Animatable.View animation='fadeInLeft' delay={500} style={styles.containerHeader}>
-          <Text style={styles.message}>Bem-vindo(a)</Text>
-        </Animatable.View>
+      <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
+        <Text style={styles.message}>Bem-vindo(a)</Text>
+      </Animatable.View>
 
-        <Animatable.View animation='fadeInUp' style={styles.containerForm}>
-          <Text style={styles.title}>Email</Text>
-          <TextInput placeholder='Digite um email...' style={styles.input}/>
+      <Animatable.View animation="fadeInUp" style={styles.containerForm}>
+        <Text style={styles.title}>Email</Text>
+        <TextInput
+          value={email}
+          onChangeText={setEmail}
+          placeholder="Digite um email..."
+          style={styles.input}
+        />
 
-          <Text style={styles.title}>Senha</Text>
-          <TextInput placeholder='Sua senha' style={styles.input}/>
+        <Text style={styles.title}>Senha</Text>
+        <TextInput
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholder="Sua senha"
+          style={styles.input}
+        />
 
-          <TouchableOpacity style={styles.button} onPress={ () => navigation.navigate('Home') }>
-            <Text style={styles.buttonText}>Acessar</Text>
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Acessar</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity style={styles.buttonRegister}>
-            <Text style={styles.registerText}>Não possui uma conta? Cadastre-se</Text>
-          </TouchableOpacity>
-        </Animatable.View>
+        <TouchableOpacity style={styles.buttonRegister}>
+          <Text style={styles.registerText}>Não possui uma conta? Cadastre-se</Text>
+        </TouchableOpacity>
+      </Animatable.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:{
+  container: {
     flex: 1,
-    backgroundColor: '#38a69d'
+    backgroundColor: '#38a69d',
   },
-  containerHeader:{
+  containerHeader: {
     marginTop: '14%',
     marginBottom: '8%',
     paddingStart: '5%',
   },
-  message:{
+  message: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#FFF'
+    color: '#FFF',
   },
-  containerForm:{
+  containerForm: {
     backgroundColor: '#FFF',
     flex: 1,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     paddingStart: '5%',
-    paddingEnd: '5%'
+    paddingEnd: '5%',
   },
-  title:{
+  title: {
     fontSize: 20,
-    marginTop: 28
+    marginTop: 28,
   },
-  input:{
+  input: {
     borderBottomWidth: 1,
     height: 40,
     marginBottom: 12,
-    fontSize: 16
+    fontSize: 16,
   },
-  button:{
+  button: {
     backgroundColor: '#38a69d',
     width: '100%',
     borderRadius: 4,
     paddingVertical: 8,
     marginTop: 14,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
-  buttonText:{
+  buttonText: {
     color: '#FFF',
     fontSize: 18,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
-  buttonRegister:{
+  buttonRegister: {
     marginTop: 14,
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
-  registerText:{
-    color: '#a1a1a1'
-  }
+  registerText: {
+    color: '#a1a1a1',
+  },
 });
