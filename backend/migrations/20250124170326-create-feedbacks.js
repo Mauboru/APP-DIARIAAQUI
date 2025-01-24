@@ -2,7 +2,7 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('applications', {
+    await queryInterface.createTable('da_feedbacks', {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
@@ -13,23 +13,28 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'services',
+          model: 'da_services',
           key: 'id',
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      worker_id: {
+      reviewer_id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'users',
+          model: 'da_users',
           key: 'id',
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
       },
-      message: {
+      rating: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        validate: { min: 1, max: 5 },
+      },
+      comment: {
         type: Sequelize.TEXT,
         allowNull: true,
       },
@@ -38,15 +43,10 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.NOW,
       },
-      updatedAt: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.NOW,
-      },
     });
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('applications');
+    await queryInterface.dropTable('da_feedbacks');
   }
 };
