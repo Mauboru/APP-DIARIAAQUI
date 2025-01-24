@@ -1,13 +1,13 @@
-import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../instances/mysql";
+import { Model, DataTypes, Sequelize } from 'sequelize';
+import { sequelize } from '../instances/mysql';
 
 export class Client extends Model {
   public id!: number;
   public name!: string;
   public email!: string;
   public phone!: string;
-  public createdAt!: Date;
-  public updatedAt!: Date;
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
 }
 
 Client.init(
@@ -16,6 +16,7 @@ Client.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      allowNull: false,
     },
     name: {
       type: DataTypes.STRING,
@@ -25,6 +26,9 @@ Client.init(
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
+      validate: {
+        isEmail: true,
+      },
     },
     phone: {
       type: DataTypes.STRING,
@@ -33,6 +37,7 @@ Client.init(
   },
   {
     sequelize,
-    tableName: "clients",
+    tableName: 'clients',
+    timestamps: true,
   }
 );
