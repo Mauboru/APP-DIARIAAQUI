@@ -2,19 +2,19 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Navbar, Footer } from '../../components';
 
-export default function Home({ navigation }) {
+export default function Profile({ navigation }) {
   return (
     <View style={styles.container}>
       <Navbar
-        title="Tela Inicial"
+        title="Tela de Perfil"
         onBack={() => navigation.goBack()} 
-        showBackButton={false} 
+        showBackButton={false}
       />
       <View style={styles.content}>
-        <Text>Bem Vindo a Tela Inicial!</Text>
+        <Text>Bem Vindo a Tela de Perfil!</Text>
       </View>
 
-      <Footer setSelected="0"/>
+      <Footer setSelected="2"/>
     </View>
   );
 }

@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar({ title, onBack, showBackButton = true }) {
-  const { theme, isDarkTheme, toggleTheme } = useTheme(); // Acesso ao tema global e controle
+  const { theme, isDarkTheme, toggleTheme } = useTheme(); 
 
   return (
     <View style={[styles.container, { backgroundColor: theme.primary }]}>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, Button, Alert } from 'react-native';
+import { Footer } from '../../components';
 
 export default function ApiTest() {
   const [data, setData] = useState([]);
@@ -91,28 +92,32 @@ export default function ApiTest() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Tela de teste para conexão com API</Text>
-      <TextInput
-        style={styles.input}
-        value={name}
-        onChangeText={setName}
-        placeholder="Nome"
-      />
-      <TextInput
-        style={styles.input}
-        value={email}
-        onChangeText={setEmail}
-        placeholder="E-mail"
-      />
-      <TextInput
-        style={styles.input}
-        value={phone}
-        onChangeText={setPhone}
-        placeholder="Telefone"
-      />
-      <Button
-        title={editing ? 'Editar Cliente' : 'Adicionar Cliente'}
-        onPress={editing ? handleEditClient : handleAddClient}
-      />
+      <View style={{ paddingTop: 10, paddingBottom: 10, paddingLeft: 20, paddingRight: 20 }}>
+        <TextInput
+          style={styles.input}
+          value={name}
+          onChangeText={setName}
+          placeholder="Nome"
+        />
+        <TextInput
+          style={styles.input}
+          value={email}
+          onChangeText={setEmail}
+          placeholder="E-mail"
+        />
+        <TextInput
+          style={styles.input}
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="Telefone"
+        />
+      </View>
+      <View style={{ paddingTop: 10, paddingBottom: 10, paddingLeft: 20, paddingRight: 20 }}>
+        <Button
+          title={editing ? 'Editar Cliente' : 'Adicionar Cliente'}
+          onPress={editing ? handleEditClient : handleAddClient}
+        />
+      </View>
 
       {loading ? (
         <Text style={styles.loading}>Carregando...</Text>
@@ -155,6 +160,7 @@ export default function ApiTest() {
           )}
         />
       )}
+      <Footer setSelected="1"/>
     </View>
   );
 }
@@ -162,21 +168,23 @@ export default function ApiTest() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#38a69d',
-    padding: 20,
+    backgroundColor: 'black',
   },
   flatList: {
     paddingTop: 10,
+    padding: 20
   },
   header: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
     marginBottom: 20,
+    padding: 20
   },
   loading: {
     fontSize: 18,
     color: '#fff',
+    padding: 20
   },
   input: {
     height: 40,
