@@ -8,9 +8,6 @@ export default function Navbar({ title, onBack, showBackButton = true }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.primary }]}>
-      <TouchableOpacity onPress={onBack} style={styles.backButton}>
-        <Icon name="arrow-back" size={24} color={theme.text} />
-      </TouchableOpacity>
       <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
       <View style={styles.rightActions}>
         <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>

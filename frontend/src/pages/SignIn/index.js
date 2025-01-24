@@ -10,6 +10,7 @@ export default function SignIn() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false); 
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -22,13 +23,15 @@ export default function SignIn() {
         email,
         password,
       });
-    
+
       if (response.status === 200) {
         const token = response.data.token;
         if (token) {
           await AsyncStorage.setItem('token', token);
           Alert.alert('Sucesso', response.data.message);
-          navigation.navigate('Home');
+
+          setIsLoggedIn(true); // Atualizando o estado para indicar que está logado
+          navigation.navigate('Home'); // Redirecionando para a tela Home
         }
       }
     } catch (error) {
