@@ -3,6 +3,7 @@ import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SignIn() {
   const navigation = useNavigation();
@@ -21,14 +22,18 @@ export default function SignIn() {
         email,
         password,
       });
-
+    
       if (response.status === 200) {
-        Alert.alert('Sucesso', response.data.message);
-        navigation.navigate('Home');
+        const token = response.data.token;
+        if (token) {
+          await AsyncStorage.setItem('token', token);
+          Alert.alert('Sucesso', response.data.message);
+          navigation.navigate('Home');
+        }
       }
     } catch (error) {
       console.error(error);
-      if (error.response && error.response.status === 401) {
+      if (error.response && error.response.status === 404) {
         Alert.alert('Erro', 'Email ou senha incorretos.');
       } else {
         Alert.alert('Erro', 'Erro ao tentar fazer login. Tente novamente.');
@@ -64,7 +69,7 @@ export default function SignIn() {
           <Text style={styles.buttonText}>Acessar</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buttonRegister}>
+        <TouchableOpacity style={styles.buttonRegister} onPress={() => navigation.navigate('Register')}>
           <Text style={styles.registerText}>Não possui uma conta? Cadastre-se</Text>
         </TouchableOpacity>
       </Animatable.View>

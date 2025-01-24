@@ -1,14 +1,25 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import * as Animatable from 'react-native-animatable';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../../context/ThemeContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Animatable from 'react-native-animatable';
 
 export default function Welcome() {
-  const { theme } = useTheme();
   const navigation = useNavigation();
 
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const token = await AsyncStorage.getItem('token');
+      if (token) {
+        navigation.navigate('Home');
+      }
+    };
+
+    checkLoginStatus();
+  }, [navigation]);
+
   return (
-    <View style={[styles.container , { backgroundColor: theme.background }]}>
+    <View style={styles.container}>
       <View style={styles.containerLogo}>
         <Animatable.Image
           animation="flipInX"
