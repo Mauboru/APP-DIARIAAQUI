@@ -27,6 +27,7 @@
     "pg": "^8.7.1",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.6.5",
+    "twilio": "^5.4.2",
     "typescript": "^5.2.2",
     "validator": "^13.6.0"
   },
