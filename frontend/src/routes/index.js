@@ -1,35 +1,38 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Welcome, SignIn, ApiTest, Home, Profile } from '../pages';
+import { Welcome, SignIn, ApiTest, Home, Profile, Pokemon } from '../pages';
 
 const Stack = createNativeStackNavigator();
 
 export default function Routes(){
     return(
-        <Stack.Navigator>
+        <Stack.Navigator
+            screenOptions={{
+                headerShown: false,
+                animation: 'none',
+            }}>
             <Stack.Screen
                 name="Welcome"
                 component={Welcome}
-                options={{ headerShown: false }}
             />
             <Stack.Screen
                 name="SignIn"
                 component={SignIn}
-                options={{ headerShown: false }}
             />
             <Stack.Screen
                 name="ApiTest"
                 component={ApiTest}
-                options={{ headerShown: false }}
             />
             <Stack.Screen
                 name="Home"
                 component={Home}
-                options={{ headerShown: false }}
             />
             <Stack.Screen
                 name="Profile"
                 component={Profile}
-                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="Pokemon"
+                component={Pokemon}
             />
         </Stack.Navigator>
     )

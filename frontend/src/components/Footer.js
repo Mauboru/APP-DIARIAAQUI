@@ -24,8 +24,8 @@ export default function Footer({ setSelected }) {
         style={[styles.button, { opacity: selected === 1 ? 1 : 0.5 }]} 
         onPress={() => navigation.navigate('ApiTest')}
       >
-        <Icon name={selected === 1 ? 'search' : 'search-outline'} size={24} color={theme.text} />
-        <Text style={[styles.label, { color: theme.text }]}>Buscar</Text>
+        <Icon name={selected === 1 ? 'bug' : 'bug-outline'} size={24} color={theme.text} />
+        <Text style={[styles.label, { color: theme.text }]}>DEBUG API</Text>
       </TouchableOpacity>
 
       <TouchableOpacity 
@@ -35,12 +35,24 @@ export default function Footer({ setSelected }) {
         <Icon name={selected === 2 ? 'person' : 'person-outline'} size={24} color={theme.text} />
         <Text style={[styles.label, { color: theme.text }]}>Perfil</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={[styles.button, { opacity: selected === 3 ? 1 : 0.5 }]} 
+        onPress={() => navigation.navigate('Pokemon')}
+      >
+        <Icon name={selected === 3 ? 'flash' : 'flash-outline'} size={24} color={theme.text} />
+        <Text style={[styles.label, { color: theme.text }]}>PokéDex</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    position: 'absolute',
+    bottom: 0,              
+    left: 0,
+    right: 0,
     height: 70,
     flexDirection: 'row',
     alignItems: 'center',
@@ -48,6 +60,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0, 0, 0, 0.1)',
+    zIndex: 1000, 
   },
   button: {
     alignItems: 'center',

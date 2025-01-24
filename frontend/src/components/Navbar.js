@@ -8,11 +8,9 @@ export default function Navbar({ title, onBack, showBackButton = true }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.primary }]}>
-      {showBackButton && (
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <Icon name="arrow-back" size={24} color={theme.text} />
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity onPress={onBack} style={styles.backButton}>
+        <Icon name="arrow-back" size={24} color={theme.text} />
+      </TouchableOpacity>
       <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
       <View style={styles.rightActions}>
         <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
@@ -32,11 +30,16 @@ export default function Navbar({ title, onBack, showBackButton = true }) {
 
 const styles = StyleSheet.create({
   container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     height: 60,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
+    zIndex: 1000, 
   },
   backButton: {
     padding: 5,
@@ -44,8 +47,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'center',
-    flex: 1,
+    textAlign: 'center',    
+    flexShrink: 1,         
+    paddingHorizontal: 20, 
   },
   rightActions: {
     flexDirection: 'row',

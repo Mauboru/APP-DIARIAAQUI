@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, Button, Alert } from 'react-native';
-import { Footer } from '../../components';
+import { Footer, Navbar } from '../../components';
 
-export default function ApiTest() {
+export default function ApiTest({ navigation }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
@@ -91,7 +91,11 @@ export default function ApiTest() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Tela de teste para conexão com API</Text>
+      <Navbar
+          title="Tela API TESTE"
+          onBack={() => navigation.goBack()} 
+          showBackButton={false} 
+        />
       <View style={{ paddingTop: 10, paddingBottom: 10, paddingLeft: 20, paddingRight: 20 }}>
         <TextInput
           style={styles.input}
@@ -169,16 +173,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'black',
+    paddingTop: 60,
+    paddingBottom: 75,
   },
   flatList: {
     paddingTop: 10,
-    padding: 20
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 20,
     padding: 20
   },
   loading: {
