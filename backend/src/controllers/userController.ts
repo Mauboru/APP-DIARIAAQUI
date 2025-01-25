@@ -86,3 +86,26 @@ export const registerUser = async (req: Request, res: Response): Promise<Respons
     return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };
+
+export const getUserData = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'Token ausente.' });
+    }
+
+    const decoded: any = jwt.verify(token, 'sua_chave_secreta');
+    const user = await User.findByPk(decoded.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    const { password_hash, id, createdAt, updatedAt, ...userData } = user.toJSON();
+
+    return res.status(200).json(userData);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Erro no servidor.' });
+  }
+};

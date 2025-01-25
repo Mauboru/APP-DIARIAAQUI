@@ -12,4 +12,6 @@ router.delete("/clients/:id", ClientController.deleteClient);
 router.post("/login", UserController.login); 
 router.post("/register", UserController.registerUser); 
 
+router.get("/users", UserController.getUserData); 
+
 export default router;

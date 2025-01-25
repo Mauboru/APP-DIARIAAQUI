@@ -4,6 +4,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios'; 
 
 export default function Navbar({ title }) {
   const { theme, isDarkTheme, toggleTheme } = useTheme();
@@ -14,20 +15,24 @@ export default function Navbar({ title }) {
   useEffect(() => {
     async function fetchUserName() {
       const token = await AsyncStorage.getItem('token');
-      setUserName('Usuário');
+      if (token) {
+        try {
+          const response = await axios.get('http://192.168.0.126:3000/users', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
 
-      // if (token) {
-      //   try {
-      //     // Substitua a URL com a API de informações do usuário, se houver
-      //     const response = await axios.get('http://85.31.63.241:3001/me', {
-      //       headers: { Authorization: `Bearer ${token}` },
-      //     });
-      //     setUserName(response.data.name || 'Usuário');
-      //   } catch {
-      //     console.error('Erro ao buscar dados do usuário.');
-      //   }
-      // }
+          if (response.data.name) {
+            setUserName(response.data.name); 
+          } else {
+            console.error('Erro ao buscar nome do usuário');
+            setUserName('Usuário');
+          }
+        } catch (error) {
+          console.error('Erro ao buscar dados do usuário:', error); 
+        }
+      }
     }
+
     fetchUserName();
   }, []);
 
