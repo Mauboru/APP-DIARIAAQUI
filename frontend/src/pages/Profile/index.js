@@ -14,7 +14,7 @@ export default function Profile({ navigation }) {
         <Text>Bem Vindo a Tela de Perfil!</Text>
       </View>
 
-      <Footer setSelected="2"/>
+      <Footer setSelected="3"/>
     </View>
   );
 }

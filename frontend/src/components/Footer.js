@@ -30,17 +30,25 @@ export default function Footer({ setSelected }) {
 
       <TouchableOpacity 
         style={[styles.button, { opacity: selected === 2 ? 1 : 0.5 }]} 
-        onPress={() => navigation.navigate('Profile')}
+        onPress={() => navigation.navigate('QrCode')}
       >
-        <Icon name={selected === 2 ? 'person' : 'person-outline'} size={24} color={theme.text} />
-        <Text style={[styles.label, { color: theme.text }]}>Perfil</Text>
+        <Icon name={selected === 2 ? 'qr-code' : 'qr-code-outline'} size={24} color={theme.text} />
+        <Text style={[styles.label, { color: theme.text }]}>QrCode</Text>
       </TouchableOpacity>
 
       <TouchableOpacity 
         style={[styles.button, { opacity: selected === 3 ? 1 : 0.5 }]} 
+        onPress={() => navigation.navigate('Profile')}
+      >
+        <Icon name={selected === 3 ? 'person' : 'person-outline'} size={24} color={theme.text} />
+        <Text style={[styles.label, { color: theme.text }]}>Perfil</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={[styles.button, { opacity: selected === 4 ? 1 : 0.5 }]} 
         onPress={() => navigation.navigate('Pokemon')}
       >
-        <Icon name={selected === 3 ? 'flash' : 'flash-outline'} size={24} color={theme.text} />
+        <Icon name={selected === 4 ? 'flash' : 'flash-outline'} size={24} color={theme.text} />
         <Text style={[styles.label, { color: theme.text }]}>PokéDex</Text>
       </TouchableOpacity>
     </View>

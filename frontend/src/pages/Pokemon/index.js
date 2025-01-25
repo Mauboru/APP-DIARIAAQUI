@@ -62,7 +62,7 @@ export default function Pokemon({ navigation }) {
         <TouchableOpacity style={styles.pokeButton} onPress={fetchRandomPokemon}>
           <Image source={pokeBallImage} style={styles.pokeBallImage} />
         </TouchableOpacity>
-        <Footer setSelected={3} />
+        <Footer setSelected={4} />
       </View>
     </ImageBackground>
   );

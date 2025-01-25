@@ -5,3 +5,4 @@ export { default as SignIn } from './SignIn';
 export { default as Welcome } from './Welcome';
 export { default as Pokemon } from './Pokemon';
 export { default as Register } from './Register';
+export { default as QrCode } from './QrCode';

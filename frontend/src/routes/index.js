@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Welcome, SignIn, ApiTest, Home, Profile, Pokemon, Register } from '../pages';
+import { Welcome, SignIn, ApiTest, Home, Profile, Pokemon, Register, QrCode } from '../pages';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +37,10 @@ export default function Routes(){
             <Stack.Screen
                 name="Register"
                 component={Register}
+            />
+            <Stack.Screen
+                name="QrCode"
+                component={QrCode}
             />
         </Stack.Navigator>
     )
