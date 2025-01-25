@@ -33,7 +33,6 @@ export default function Routes() {
           return <Home {...props} />;
         }}
       />
-      {/* Adicione verificação para outras rotas protegidas */}
       <Stack.Screen 
         name="Profile"
         component={(props) => {

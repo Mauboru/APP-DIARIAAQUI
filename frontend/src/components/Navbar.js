@@ -17,7 +17,7 @@ export default function Navbar({ title }) {
       const token = await AsyncStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.get('http://192.168.0.126:3000/users', {
+          const response = await axios.get('http://85.31.63.241:3001/users', {
             headers: { Authorization: `Bearer ${token}` },
           });
 

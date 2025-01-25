@@ -20,7 +20,7 @@ export default function SignIn() {
 
     try {
       const response = await axios.post('http://85.31.63.241:3001/login', {
-        email,
+        emailOrName: email,
         password,
       });
 
@@ -30,14 +30,14 @@ export default function SignIn() {
           await AsyncStorage.setItem('token', token);
           Alert.alert('Sucesso', response.data.message);
 
-          setIsLoggedIn(true); // Atualizando o estado para indicar que está logado
-          navigation.navigate('Home'); // Redirecionando para a tela Home
+          setIsLoggedIn(true);
+          navigation.navigate('Home'); 
         }
       }
     } catch (error) {
       console.error(error);
       if (error.response && error.response.status === 404) {
-        Alert.alert('Erro', 'Email ou senha incorretos.');
+        Alert.alert('Erro', 'Email / Usuario ou senha incorretos.');
       } else {
         Alert.alert('Erro', 'Erro ao tentar fazer login. Tente novamente.');
       }
@@ -55,7 +55,7 @@ export default function SignIn() {
         <TextInput
           value={email}
           onChangeText={setEmail}
-          placeholder="Digite um email..."
+          placeholder="Seu email/nome..."
           style={styles.input}
         />
 

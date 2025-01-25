@@ -20,11 +20,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo.png"
       },
-      "package": "com.mauboru.diariaaqui",
-      "permissions": [
-        "CAMERA",
-        "VIBRATE"
-      ]
+      "package": "com.mauboru.diariaaqui"
     },  
     "web": {
       "favicon": "./assets/favicon.png"
@@ -37,14 +33,6 @@
           "android": {
             "usesCleartextTraffic": true
           }
-        }
-      ],
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-          "recordAudioAndroid": true
         }
       ]
     ],

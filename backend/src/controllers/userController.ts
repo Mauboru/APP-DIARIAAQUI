@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { User } from '../models/User';
+import { Op } from 'sequelize';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import twilio from 'twilio';
@@ -13,13 +14,17 @@ const client = twilio(accountSid, authToken);
 
 export const login = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const { email, password } = req.body;
+    const { emailOrName, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email e senha são obrigatórios.' });
+    if (!emailOrName || !password) {
+      return res.status(400).json({ message: 'Email/Usuario e senha são obrigatórios.' });
     }
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ 
+      where: { 
+        [Op.or]: [{ email: emailOrName }, { name: emailOrName }] 
+      }
+    });
 
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado.' });
