@@ -7,33 +7,40 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       name: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false, 
       },
       email: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false, 
+        unique: true,
       },
       password_hash: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false, 
       },
       phone_number: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: true, 
       },
-      user_type: {
-        type: Sequelize.ENUM
+      cpforCnpj: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
+
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Users');
   }

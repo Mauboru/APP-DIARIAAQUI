@@ -8,7 +8,7 @@ export class User extends Model {
   public email!: string;
   public password_hash!: string;
   public phone_number!: string;
-  public user_type!: 'employer' | 'worker'; 
+  public cpforCnpj!: string; 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
@@ -49,9 +49,9 @@ User.init(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    user_type: {
-      type: DataTypes.ENUM('employer', 'worker'),
-      allowNull: false,
+    cpforCnpj: { 
+      type: DataTypes.STRING,
+      allowNull: false, 
     },
   },
   {

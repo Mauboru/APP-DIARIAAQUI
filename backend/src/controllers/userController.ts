@@ -55,10 +55,20 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
 
 export const registerUser = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const { name, email, password, phone_number, user_type } = req.body;
+    const { name, email, password, phone_number, cpforCnpj } = req.body;
 
-    if (!name || !email || !password || !user_type) {
+    if (!name || !email || !password || !cpforCnpj || !phone_number) {
       return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
+    }
+
+    const cpfOrCnpjPattern = /^[0-9]{11}$|^[0-9]{14}$/;
+    if (!cpfOrCnpjPattern.test(cpforCnpj)) {
+      return res.status(400).json({ message: 'CPF ou CNPJ inválido.' });
+    }
+
+    const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    if (!emailPattern.test(email)) {
+      return res.status(400).json({ message: 'Email inválido.' });
     }
 
     const existingUser = await User.findOne({ where: { email } });
@@ -73,11 +83,11 @@ export const registerUser = async (req: Request, res: Response): Promise<Respons
       email,
       password_hash,
       phone_number,
-      user_type,
+      cpforCnpj,  
     });
 
     await client.messages.create({
-      body: `Novo cadastro: ${newUser.name} (${newUser.email}) com o tipo de usuário ${newUser.user_type}`,
+      body: `Novo cadastro: ${newUser.name} (${newUser.email}) com o CPF/CNPJ ${newUser.cpforCnpj}`,
       from: 'whatsapp:+14155238886',
       to: 'whatsapp:+554184987049',
     });

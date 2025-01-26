@@ -1,7 +1,6 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView  } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
-import { Picker } from '@react-native-picker/picker';
 import { useState } from 'react';
 import axios from 'axios';
 
@@ -12,12 +11,20 @@ export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [userType, setUserType] = useState('employer');
+  const [cpforCnpj, setCpfOrCnpj] = useState('');
 
   const validateEmail = (email) => {
     const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     return regex.test(email);
   };
+
+  const validateCpfOrCnpj = (cpforCnpj) => {
+
+  }
+
+  const validatePhoneNumber = (cpforCnpj) => {
+
+  }
 
   const formatPhoneNumber = (value) => {
     value = value.replace(/\D/g, '');
@@ -38,7 +45,7 @@ export default function SignUp() {
   };
 
   const handleRegister = async () => {
-    if (!name || !email || !password || !userType) {
+    if (!name || !email || !password || !cpforCnpj || !phoneNumber) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
@@ -52,11 +59,11 @@ export default function SignUp() {
       const cleanedPhoneNumber = cleanPhoneNumber(phoneNumber);
 
       const response = await axios.post('http://85.31.63.241:3001/register', {
+        cpforCnpj,
         name,
         email,
         password,
         phone_number: cleanedPhoneNumber,
-        user_type: userType,
       });
 
       if (response.status === 201) {
@@ -80,7 +87,15 @@ export default function SignUp() {
       </Animatable.View>
 
       <Animatable.View animation="fadeInUp" style={styles.containerForm}>
-        <Text style={styles.title}>Nome</Text>
+        <Text style={styles.title}>CPF / CNPJ</Text>
+        <TextInput
+          value={cpforCnpj}
+          onChangeText={setCpfOrCnpj}
+          placeholder="Digite seu cpf/cnpj"
+          style={styles.input}
+        />
+          
+        <Text style={styles.title}>Nome completo / Razão Social</Text>
         <TextInput
           value={name}
           onChangeText={setName}
@@ -114,16 +129,6 @@ export default function SignUp() {
           maxLength={16} 
           style={styles.input}
         />
-
-        <Text style={styles.title}>Tipo de Usuário</Text>
-        <Picker
-          selectedValue={userType}
-          onValueChange={(itemValue) => setUserType(itemValue)} 
-          style={styles.picker}
-        >
-          <Picker.Item label="Employer" value="employer" />
-          <Picker.Item label="Worker" value="worker" />
-        </Picker>
 
         <TouchableOpacity style={styles.button} onPress={handleRegister}>
           <Text style={styles.buttonText}>Criar Conta</Text>

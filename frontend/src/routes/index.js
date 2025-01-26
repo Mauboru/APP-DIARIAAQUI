@@ -24,6 +24,7 @@ export default function Routes() {
     >
       <Stack.Screen name="Welcome" component={Welcome} />
       <Stack.Screen name="SignIn" component={SignIn} />
+      <Stack.Screen name="Register" component={Register} />
       <Stack.Screen
         name="Home"
         component={(props) => {
@@ -51,15 +52,6 @@ export default function Routes() {
         return <Pokemon {...props} />;
         }}
        />
-      <Stack.Screen 
-        name="Register"
-        component={(props) => {
-            useEffect(() => {
-            checkAuth(props.navigation, 'Register');
-            }, []);
-        return <Register {...props} />;
-        }}
-      />
       <Stack.Screen 
         name="QrCode"
         component={(props) => {
