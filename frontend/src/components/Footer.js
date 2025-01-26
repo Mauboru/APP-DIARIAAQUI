@@ -37,14 +37,6 @@ export default function Footer({ setSelected }) {
       </TouchableOpacity>
 
       <TouchableOpacity 
-        style={[styles.button, { opacity: selected === 3 ? 1 : 0.5 }]} 
-        onPress={() => navigation.navigate('Profile')}
-      >
-        <Icon name={selected === 3 ? 'person' : 'person-outline'} size={24} color={theme.text} />
-        <Text style={[styles.label, { color: theme.text }]}>Perfil</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity 
         style={[styles.button, { opacity: selected === 4 ? 1 : 0.5 }]} 
         onPress={() => navigation.navigate('Pokemon')}
       >

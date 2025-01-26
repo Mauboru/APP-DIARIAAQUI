@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { User } from '../models/User';
 import { Op } from 'sequelize';
+const { cpf, cnpj } = require('cpf-cnpj-validator');
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import twilio from 'twilio';
@@ -61,8 +62,8 @@ export const registerUser = async (req: Request, res: Response): Promise<Respons
       return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
     }
 
-    const cpfOrCnpjPattern = /^[0-9]{11}$|^[0-9]{14}$/;
-    if (!cpfOrCnpjPattern.test(cpforCnpj)) {
+    if (cpf.isValid(cpforCnpj) || cnpj.isValid(cpforCnpj)) {
+    } else {
       return res.status(400).json({ message: 'CPF ou CNPJ inválido.' });
     }
 

@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios'; 
+import axios from 'axios';
 
 export default function Navbar({ title }) {
   const { theme, isDarkTheme, toggleTheme } = useTheme();
@@ -15,6 +15,7 @@ export default function Navbar({ title }) {
   useEffect(() => {
     async function fetchUserName() {
       const token = await AsyncStorage.getItem('token');
+      
       if (token) {
         try {
           const response = await axios.get('http://85.31.63.241:3001/users', {
@@ -32,9 +33,9 @@ export default function Navbar({ title }) {
         }
       }
     }
-
     fetchUserName();
-  }, []);
+
+  }, []); 
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token');
@@ -65,7 +66,7 @@ export default function Navbar({ title }) {
       {menuVisible && (
         <View style={styles.menu}>
           <Text style={styles.menuUserName}>{userName}</Text>
-          <TouchableOpacity style={styles.menuButton} onPress={() => {}}>
+          <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Profile')}>
             <Text style={styles.menuButtonText}>Editar</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.menuButtonLogout} onPress={handleLogout}>

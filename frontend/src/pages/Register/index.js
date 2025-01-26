@@ -18,10 +18,6 @@ export default function SignUp() {
     return regex.test(email);
   };
 
-  const validateCpfOrCnpj = (cpforCnpj) => {
-
-  }
-
   const validatePhoneNumber = (cpforCnpj) => {
 
   }

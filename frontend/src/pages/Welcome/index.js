@@ -43,11 +43,11 @@ export default function Welcome() {
 
 const styles = StyleSheet.create({
   container:{
+    backgroundColor: '#38a69d',
     flex: 1
   },
   containerLogo:{
     flex: 2,
-    backgroundColor: '#38a69d',
     justifyContent: 'center',
     alignItems: 'center'
   },
