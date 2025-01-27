@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { User } from '../models/User';
 import { Op } from 'sequelize';
 const { cpf, cnpj } = require('cpf-cnpj-validator');
+import { parsePhoneNumber } from 'libphonenumber-js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import twilio from 'twilio';
@@ -58,24 +59,33 @@ export const registerUser = async (req: Request, res: Response): Promise<Respons
   try {
     const { name, email, password, phone_number, cpforCnpj } = req.body;
 
-    if (!name || !email || !password || !cpforCnpj || !phone_number) {
-      return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
-    }
+    if (!name || !email || !password || !cpforCnpj || !phone_number) return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
 
     if (cpf.isValid(cpforCnpj) || cnpj.isValid(cpforCnpj)) {
     } else {
       return res.status(400).json({ message: 'CPF ou CNPJ inválido.' });
     }
 
+    const existingCpfOrCnpj = await User.findOne({ where: { cpforCnpj } });
+    if (existingCpfOrCnpj) return res.status(400).json({ message: 'Este cpf/cnpj já está registrado.' });
+
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-    if (!emailPattern.test(email)) {
-      return res.status(400).json({ message: 'Email inválido.' });
-    }
+    if (!emailPattern.test(email)) return res.status(400).json({ message: 'Email inválido.' });
 
     const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Este e-mail já está registrado.' });
+    if (existingUser) return res.status(400).json({ message: 'Este e-mail já está registrado.' });
+
+    try {
+      const phonePattern = parsePhoneNumber(phone_number, 'BR');
+      if (!phonePattern.isValid()) {
+        return res.status(400).json({ message: 'Número de telefone inválido.' });
+      }
+    } catch (err) {
+      return res.status(400).json({ message: 'Número de telefone inválido.' });
     }
+
+    const passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,20}$/;
+    if (!passwordPattern.test(password)) return res.status(400).json({ message: 'Senha muito fraca!' })
 
     const password_hash = await bcrypt.hash(password, 10);
 

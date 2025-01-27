@@ -1,25 +1,27 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator  } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import axios from 'axios';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import API_BASE_URL from '../../config';
 
 export default function SignIn() {
   const navigation = useNavigation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false); 
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
-      return;
-    }
-
+    setIsLoading(true);
+    setErrorMessage('');
     try {
-      const response = await axios.post('http://85.31.63.241:3001/login', {
+      const response = await axios.post(`${API_BASE_URL}/login`, {
         emailOrName: email,
         password,
       });
@@ -28,8 +30,6 @@ export default function SignIn() {
         const token = response.data.token;
         if (token) {
           await AsyncStorage.setItem('token', token);
-          Alert.alert('Sucesso', response.data.message);
-
           setIsLoggedIn(true);
           navigation.navigate('Home'); 
         }
@@ -37,15 +37,29 @@ export default function SignIn() {
     } catch (error) {
       console.error(error);
       if (error.response && error.response.status === 404) {
-        Alert.alert('Erro', 'Email / Usuario ou senha incorretos.');
+        setErrorMessage('Email ou senha incorretos. Tente novamente.');
       } else {
-        Alert.alert('Erro', 'Erro ao tentar fazer login. Tente novamente.');
+        setErrorMessage('Erro ao tentar fazer login. Por favor, tente novamente.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
+  };
+
+  const isButtonDisabled = !email.trim() || !password.trim();
+
   return (
     <View style={styles.container}>
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#FFF" />
+        </View>
+      )}
+
       <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
         <Text style={styles.message}>Bem-vindo(a)</Text>
       </Animatable.View>
@@ -60,17 +74,36 @@ export default function SignIn() {
         />
 
         <Text style={styles.title}>Senha</Text>
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          placeholder="Sua senha"
-          style={styles.input}
-        />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!isPasswordVisible}
+            placeholder="Sua senha"
+            style={styles.passwordInput} 
+          />
+          <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
+            <Ionicons
+              name={isPasswordVisible ? 'eye-off' : 'eye'} 
+              size={24}
+              color="#a1a1a1"
+            />
+          </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <TouchableOpacity style={styles.forgotPassword} onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")}>
+          <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, isButtonDisabled && styles.buttonDisabled]} 
+          onPress={handleLogin}
+          disabled={isButtonDisabled} 
+        >
           <Text style={styles.buttonText}>Acessar</Text>
         </TouchableOpacity>
+
+        {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
 
         <TouchableOpacity style={styles.buttonRegister} onPress={() => navigation.navigate('Register')}>
           <Text style={styles.registerText}>Não possui uma conta? Cadastre-se</Text>
@@ -81,6 +114,17 @@ export default function SignIn() {
 }
 
 const styles = StyleSheet.create({
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },  
   container: {
     flex: 1,
     backgroundColor: '#38a69d',
@@ -90,6 +134,12 @@ const styles = StyleSheet.create({
     marginBottom: '8%',
     paddingStart: '5%',
   },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginTop: 10,
+    alignSelf: 'center',
+  },  
   message: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -113,6 +163,21 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontSize: 16,
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1, 
+    marginBottom: 12,
+  },
+  passwordInput: {
+    flex: 1, 
+    height: 40,
+    fontSize: 16,
+    padding: 0,
+  },
+  iconContainer: {
+    paddingHorizontal: 8,
+  },
   button: {
     backgroundColor: '#38a69d',
     width: '100%',
@@ -121,6 +186,9 @@ const styles = StyleSheet.create({
     marginTop: 14,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#a1a1a1', 
   },
   buttonText: {
     color: '#FFF',

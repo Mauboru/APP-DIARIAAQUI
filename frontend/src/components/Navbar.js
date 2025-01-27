@@ -39,7 +39,6 @@ export default function Navbar({ title }) {
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token');
-    Alert.alert('Logout', 'Você foi desconectado.');
     navigation.navigate('Welcome');
   };
 

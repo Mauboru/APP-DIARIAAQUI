@@ -21,6 +21,7 @@
     "express": "^4.18.2",
     "fibonacci": "^1.6.11",
     "jsonwebtoken": "^9.0.2",
+    "libphonenumber-js": "^1.11.18",
     "mod-api": "file:",
     "mysql2": "^3.4.0",
     "node-cron": "^3.0.3",

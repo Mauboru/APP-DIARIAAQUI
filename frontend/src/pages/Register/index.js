@@ -1,8 +1,9 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView  } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ScrollView, ActivityIndicator  } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import axios from 'axios';
+import API_BASE_URL from '../../config';
 
 export default function SignUp() {
   const navigation = useNavigation();
@@ -12,15 +13,10 @@ export default function SignUp() {
   const [password, setPassword] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [cpforCnpj, setCpfOrCnpj] = useState('');
-
-  const validateEmail = (email) => {
-    const regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-    return regex.test(email);
-  };
-
-  const validatePhoneNumber = (cpforCnpj) => {
-
-  }
+  const [isLoading, setIsLoading] = useState(false); 
+  const [errorMessage, setErrorMessage] = useState('');
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [passwordColor, setPasswordColor] = useState('red');
 
   const formatPhoneNumber = (value) => {
     value = value.replace(/\D/g, '');
@@ -40,21 +36,29 @@ export default function SignUp() {
     return value.replace(/\D/g, '');
   };
 
+  const validatePassword = (input) => {
+    const passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,20}$/;
+    if (!input) {
+      setPasswordMessage('');
+      setPasswordColor('red');
+      return;
+    }
+
+    if (passwordPattern.test(input)) {
+      setPasswordMessage('Senha válida.');
+      setPasswordColor('green');
+    } else {
+      setPasswordMessage('A senha deve ter entre 8 e 20 caracteres, ao menos uma letra maiúscula, uma minúscula, um número e um caractere especial.');
+      setPasswordColor('red');
+    }
+  };
+
   const handleRegister = async () => {
-    if (!name || !email || !password || !cpforCnpj || !phoneNumber) {
-      Alert.alert('Erro', 'Por favor, preencha todos os campos.');
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      Alert.alert('Erro', 'Por favor, insira um email válido.');
-      return;
-    }
-
+    setIsLoading(true);
     try {
       const cleanedPhoneNumber = cleanPhoneNumber(phoneNumber);
 
-      const response = await axios.post('http://85.31.63.241:3001/register', {
+      const response = await axios.post(`${API_BASE_URL}/register`, {
         cpforCnpj,
         name,
         email,
@@ -69,15 +73,25 @@ export default function SignUp() {
     } catch (error) {
       console.error(error);
       if (error.response && error.response.status === 400) {
-        Alert.alert('Erro', error.response.data.message);
+        setErrorMessage(error.response.data.message);
       } else {
-        Alert.alert('Erro', 'Erro ao tentar registrar. Tente novamente.');
+        setErrorMessage('Erro ao tentar registrar. Tente novamente.');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const isButtonDisabled = !name.trim() || !email.trim() || !phoneNumber.trim() || !cpforCnpj.trim() || !password.trim() ;
+
   return (
     <ScrollView  ew style={styles.container}>
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#FFF" />
+        </View>
+      )}
+
       <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
         <Text style={styles.message}>Crie sua conta</Text>
       </Animatable.View>
@@ -110,11 +124,15 @@ export default function SignUp() {
         <Text style={styles.title}>Senha</Text>
         <TextInput
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            validatePassword(text);
+          }}
           secureTextEntry
           placeholder="Digite sua senha"
           style={styles.input}
         />
+        <Text style={{ color: passwordColor, fontSize: 12, marginTop: 4 }}>{passwordMessage}</Text>
 
         <Text style={styles.title}>Telefone</Text>
         <TextInput
@@ -126,9 +144,11 @@ export default function SignUp() {
           style={styles.input}
         />
 
-        <TouchableOpacity style={styles.button} onPress={handleRegister}>
+        <TouchableOpacity style={[styles.button, isButtonDisabled && styles.buttonDisabled]} onPress={handleRegister} disabled={isButtonDisabled} >
           <Text style={styles.buttonText}>Criar Conta</Text>
         </TouchableOpacity>
+
+        {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
 
         <TouchableOpacity style={styles.buttonLogin} onPress={() => navigation.navigate('SignIn')}>
           <Text style={styles.loginText}>Já tem uma conta? Faça login</Text>
@@ -139,6 +159,17 @@ export default function SignUp() {
 }
 
 const styles = StyleSheet.create({
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  }, 
   container: {
     flex: 1,
     backgroundColor: '#38a69d',
@@ -148,6 +179,12 @@ const styles = StyleSheet.create({
     marginBottom: '8%',
     paddingStart: '5%',
   },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginTop: 10,
+    alignSelf: 'center',
+  },  
   message: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -179,6 +216,9 @@ const styles = StyleSheet.create({
     marginTop: 14,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#a1a1a1', 
   },
   buttonText: {
     color: '#FFF',
