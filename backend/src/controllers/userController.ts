@@ -41,7 +41,7 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       'sua_chave_secreta',
-      { expiresIn: '1h' }
+      { expiresIn: '30d' }
     );
 
     return res.status(200).json({
@@ -133,5 +133,83 @@ export const getUserData = async (req: Request, res: Response): Promise<Response
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Erro no servidor.' });
+  }
+};
+
+export const updateUser = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'Token ausente.' });
+    }
+
+    const decoded: any = jwt.verify(token, 'sua_chave_secreta');
+    const userId = decoded.id;
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    const { name, email, phone_number, cpforCnpj } = req.body;
+
+    if (!name && !email && !phone_number && !cpforCnpj) {
+      return res.status(400).json({ message: 'Nenhum campo para atualizar.' });
+    }
+
+    // Validar CPF/CNPJ, caso seja enviado
+    if (cpforCnpj && !(cpf.isValid(cpforCnpj) || cnpj.isValid(cpforCnpj))) {
+      return res.status(400).json({ message: 'CPF ou CNPJ inválido.' });
+    }
+
+    // Verificar se o CPF/CNPJ já está em uso
+    if (cpforCnpj && cpforCnpj !== user.cpforCnpj) {
+      const existingCpfOrCnpj = await User.findOne({ where: { cpforCnpj } });
+      if (existingCpfOrCnpj) {
+        return res.status(400).json({ message: 'Este CPF/CNPJ já está registrado.' });
+      }
+    }
+
+    // Validar email, caso seja enviado
+    const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    if (email && !emailPattern.test(email)) {
+      return res.status(400).json({ message: 'Email inválido.' });
+    }
+
+    // Verificar se o email já está em uso
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ where: { email } });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Este email já está registrado.' });
+      }
+    }
+
+    // Validar número de telefone, caso seja enviado
+    if (phone_number) {
+      try {
+        const phonePattern = parsePhoneNumber(phone_number, 'BR');
+        if (!phonePattern.isValid()) {
+          return res.status(400).json({ message: 'Número de telefone inválido.' });
+        }
+      } catch (err) {
+        return res.status(400).json({ message: 'Número de telefone inválido.' });
+      }
+    }
+
+    // Atualizar os dados do usuário
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.phone_number = phone_number || user.phone_number;
+    user.cpforCnpj = cpforCnpj || user.cpforCnpj;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Usuário atualizado com sucesso.',
+      user: { id: user.id, name: user.name, email: user.email, phone_number: user.phone_number },
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar usuário:', error);
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };

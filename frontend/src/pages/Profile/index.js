@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, TextInput, StyleSheet, Button, Alert } from 'react-native';
+import { View, Image, TextInput, StyleSheet, Button, Alert, Text, TouchableOpacity } from 'react-native';
 import { Navbar, Footer } from '../../components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -11,7 +11,6 @@ export default function Profile({ navigation }) {
     profileImage: '', 
   });
   const [isEditing, setIsEditing] = useState(false);
-  
 
   useEffect(() => {
     async function loadUserData() {
@@ -21,13 +20,15 @@ export default function Profile({ navigation }) {
         const response = await axios.get('http://85.31.63.241:3001/users', {
           headers: { Authorization: `Bearer ${token}` },
         });
-        
+
         if (response.data) {
           const data = response.data;
           setUserData({
-            name: data.name || 'Nome Não Disponível',
-            email: data.email || 'E-mail Não Disponível',
-            profileImage: 'https://m.media-amazon.com/images/M/MV5BZjA0MDgyYmItNzkzMC00OTM2LThlYzktMWMxZWU3ZGNkNDI3XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg',
+            name: data.name,
+            email: data.email,
+            profileImage: data.imagem || '',
+            phone_number: data.phone_number,
+            cpforCnpj: data.cpforCnpj
           });
         }
       } catch (error) {
@@ -44,12 +45,20 @@ export default function Profile({ navigation }) {
   };
 
   const handleSave = async () => {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) {
+      Alert.alert('Erro', 'Usuário não autenticado.');
+      return;
+    }
+
     try {
       const response = await axios.put(
-        'http://85.31.63.241:3001/users', 
+        'http://85.31.63.241:3001/updateUser',
         {
           name: userData.name,
           email: userData.email,
+          phone_number: userData.phone_number,
+          cpforCnpj: userData.cpforCnpj
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -63,6 +72,7 @@ export default function Profile({ navigation }) {
         throw new Error('Não foi possível salvar');
       }
     } catch (error) {
+      console.error('Erro ao salvar os dados:', error);
       Alert.alert('Erro', 'Não foi possível salvar as alterações.');
     }
   };
@@ -93,6 +103,26 @@ export default function Profile({ navigation }) {
           editable={isEditing}
           placeholder="E-mail"
         />
+
+        <TextInput
+          style={styles.input}
+          value={userData.phone_number}
+          onChangeText={(text) => setUserData({ ...userData, phone_number: text })}
+          editable={isEditing}
+          placeholder="Telefone"
+        />
+
+        <TextInput
+          style={styles.input}
+          value={userData.cpforCnpj}
+          onChangeText={(text) => setUserData({ ...userData, cpforCnpj: text })}
+          editable={isEditing}
+          placeholder="Cpf/Cnpj"
+        />
+
+        <TouchableOpacity style={styles.forgotPassword} onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")}>
+          <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+        </TouchableOpacity>
 
         {isEditing ? (
           <Button title="Salvar" onPress={handleSave} />

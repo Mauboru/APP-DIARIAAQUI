@@ -10,7 +10,8 @@ router.put("/clients/:id", ClientController.updateClient);
 router.delete("/clients/:id", ClientController.deleteClient);
 
 router.post("/login", UserController.login); 
-router.post("/register", UserController.registerUser); 
+router.post("/registerUser", UserController.registerUser); 
+router.post("/updateUser", UserController.updateUser); 
 
 router.get("/users", UserController.getUserData); 
 
