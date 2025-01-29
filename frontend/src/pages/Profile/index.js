@@ -1,50 +1,74 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, TextInput, StyleSheet, Button, Alert, Text, TouchableOpacity } from 'react-native';
+import { View, TextInput, StyleSheet, Alert, Text, TouchableOpacity } from 'react-native';
 import { Navbar, Footer } from '../../components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { MaterialIcons } from '@expo/vector-icons';
+import API_BASE_URL from '../../config';
+
+const formatPhoneNumber = (value) => {
+  value = value.replace(/\D/g, '');
+  if (value.length == 0) {
+    value = '';
+  } else if (value.length <= 2) {
+    value = `(${value}`;
+  } else if (value.length <= 7) {
+    value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
+  } else {
+    value = `(${value.substring(0, 2)}) ${value.substring(2, 3)} ${value.substring(3, 7)}-${value.substring(7, 11)}`;
+  }
+  return value;
+};
+
+const cleanPhoneNumber = (value) => {
+  return value.replace(/\D/g, '');
+};
 
 export default function Profile({ navigation }) {
   const [userData, setUserData] = useState({
     name: '',
     email: '',
-    profileImage: '', 
+    profileImage: '',
+    phone_number: '',
+    cpforCnpj: ''
   });
-  const [isEditing, setIsEditing] = useState(false);
+  const [editableFields, setEditableFields] = useState({});
+  const [updatedFields, setUpdatedFields] = useState({});
 
   useEffect(() => {
     async function loadUserData() {
       const token = await AsyncStorage.getItem('token');
-
       try {
-        const response = await axios.get('http://85.31.63.241:3001/users', {
+        const response = await axios.get(`${API_BASE_URL}/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (response.data) {
-          const data = response.data;
-          setUserData({
-            name: data.name,
-            email: data.email,
-            profileImage: data.imagem || '',
-            phone_number: data.phone_number,
-            cpforCnpj: data.cpforCnpj
-          });
+          setUserData(response.data);
         }
       } catch (error) {
         console.error('Erro ao carregar dados do usuário:', error);
         Alert.alert('Erro', 'Não foi possível carregar os dados do perfil.');
       }
     }
-
     loadUserData();
-  }, []); 
+  }, []);
 
-  const handleEdit = () => {
-    setIsEditing(!isEditing); 
+  const handleEdit = (field) => {
+    setEditableFields({ ...editableFields, [field]: !editableFields[field] });
   };
 
-  const handleSave = async () => {
+  const handleChange = (field, value) => {
+    setUserData({ ...userData, [field]: value });
+    setUpdatedFields({ ...updatedFields, [field]: value });
+  };
+
+  const handleSave = async (field) => {
+    if (!updatedFields[field]) {
+      setEditableFields({ ...editableFields, [field]: false });
+      return;
+    }
+
     const token = await AsyncStorage.getItem('token');
     if (!token) {
       Alert.alert('Erro', 'Usuário não autenticado.');
@@ -52,24 +76,23 @@ export default function Profile({ navigation }) {
     }
 
     try {
+      let data = { [field]: updatedFields[field] };
+
+      // Limpar o número de telefone antes de enviar para o servidor
+      if (field === 'phone_number') {
+        data = { phone_number: cleanPhoneNumber(updatedFields[field]) };
+      }
+
       const response = await axios.put(
-        'http://85.31.63.241:3001/updateUser',
-        {
-          name: userData.name,
-          email: userData.email,
-          phone_number: userData.phone_number,
-          cpforCnpj: userData.cpforCnpj
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        `${API_BASE_URL}/updateUser`,
+        data,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       if (response.status === 200) {
         Alert.alert('Sucesso!', 'Dados do perfil atualizados com sucesso!');
-        setIsEditing(false);
-      } else {
-        throw new Error('Não foi possível salvar');
+        setEditableFields({ ...editableFields, [field]: false });
+        setUpdatedFields({ ...updatedFields, [field]: undefined });
       }
     } catch (error) {
       console.error('Erro ao salvar os dados:', error);
@@ -80,58 +103,27 @@ export default function Profile({ navigation }) {
   return (
     <View style={styles.container}>
       <Navbar title="Perfil de Usuário" onBack={() => navigation.goBack()} showBackButton={true} />
-      
       <View style={styles.content}>
-        <View style={styles.imageContainer}>
-          <Image 
-            source={{ uri: userData.profileImage }} 
-            style={styles.profileImage} 
-          />
-        </View>
-
-        <TextInput
-          style={styles.input}
-          value={userData.name}
-          onChangeText={(text) => setUserData({ ...userData, name: text })}
-          editable={isEditing}
-          placeholder="Nome"
-        />
-        <TextInput
-          style={styles.input}
-          value={userData.email}
-          onChangeText={(text) => setUserData({ ...userData, email: text })}
-          editable={isEditing}
-          placeholder="E-mail"
-        />
-
-        <TextInput
-          style={styles.input}
-          value={userData.phone_number}
-          onChangeText={(text) => setUserData({ ...userData, phone_number: text })}
-          editable={isEditing}
-          placeholder="Telefone"
-        />
-
-        <TextInput
-          style={styles.input}
-          value={userData.cpforCnpj}
-          onChangeText={(text) => setUserData({ ...userData, cpforCnpj: text })}
-          editable={isEditing}
-          placeholder="Cpf/Cnpj"
-        />
-
-        <TouchableOpacity style={styles.forgotPassword} onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")}>
-          <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
-        </TouchableOpacity>
-
-        {isEditing ? (
-          <Button title="Salvar" onPress={handleSave} />
-        ) : (
-          <Button title="Editar" onPress={handleEdit} />
-        )}
+        {['name', 'email', 'phone_number', 'cpforCnpj'].map((field) => (
+          <View key={field} style={styles.inputContainer}>
+            <TextInput
+              style={[styles.input, !editableFields[field] && styles.inputDisabled]}
+              value={field === 'phone_number' ? formatPhoneNumber(userData[field]) : userData[field]}
+              onChangeText={(text) => handleChange(field, text)}
+              editable={editableFields[field] || false}
+              placeholder={field.replace('_', ' ')}
+            />
+            <TouchableOpacity onPress={() => editableFields[field] ? handleSave(field) : handleEdit(field)}>
+              <MaterialIcons
+                name={editableFields[field] ? 'check' : 'edit'}
+                size={24}
+                color={editableFields[field] ? 'green' : 'black'}
+              />
+            </TouchableOpacity>
+          </View>
+        ))}
       </View>
-
-      <Footer/>
+      <Footer />
     </View>
   );
 }
@@ -146,30 +138,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+    paddingVertical: 30,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '80%',
+    marginBottom: 8,
   },
   input: {
     height: 45,
     borderColor: '#ccc',
     borderWidth: 1,
-    marginTop: 15,
-    paddingLeft: 10,
+    marginTop: 10,
+    marginBottom: 5,
+    paddingHorizontal: 10,
     width: '100%',
     borderRadius: 8,
+    fontSize: 16,
   },
-  imageContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    backgroundColor: '#ccc',
-    borderRadius: 50,
-    marginBottom: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 40,
-    color: '#fff',
-    fontWeight: 'bold',
+  inputDisabled: {
+    backgroundColor: '#f0f0f0', 
+    color: '#888',
   },
 });

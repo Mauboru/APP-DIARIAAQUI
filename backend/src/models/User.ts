@@ -9,6 +9,7 @@ export class User extends Model {
   public password_hash!: string;
   public phone_number!: string;
   public cpforCnpj!: string; 
+  public profileImage!: number; 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
@@ -51,6 +52,10 @@ User.init(
     },
     cpforCnpj: { 
       type: DataTypes.STRING,
+      allowNull: false, 
+    },
+    profileImage: {
+      type: DataTypes.INTEGER,
       allowNull: false, 
     },
   },

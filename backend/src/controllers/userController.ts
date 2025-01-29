@@ -89,12 +89,15 @@ export const registerUser = async (req: Request, res: Response): Promise<Respons
 
     const password_hash = await bcrypt.hash(password, 10);
 
+    const randomImageIndex = Math.floor(Math.random() * 10) + 1;
+
     const newUser = await User.create({
       name,
       email,
       password_hash,
       phone_number,
       cpforCnpj,  
+      profileImage: randomImageIndex,
     });
 
     await client.messages.create({
@@ -151,18 +154,12 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
       return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
 
-    const { name, email, phone_number, cpforCnpj } = req.body;
+    const { name, email, phone_number, cpforCnpj, profileImage } = req.body;
 
-    if (!name && !email && !phone_number && !cpforCnpj) {
-      return res.status(400).json({ message: 'Nenhum campo para atualizar.' });
-    }
-
-    // Validar CPF/CNPJ, caso seja enviado
     if (cpforCnpj && !(cpf.isValid(cpforCnpj) || cnpj.isValid(cpforCnpj))) {
       return res.status(400).json({ message: 'CPF ou CNPJ inválido.' });
     }
 
-    // Verificar se o CPF/CNPJ já está em uso
     if (cpforCnpj && cpforCnpj !== user.cpforCnpj) {
       const existingCpfOrCnpj = await User.findOne({ where: { cpforCnpj } });
       if (existingCpfOrCnpj) {
@@ -170,13 +167,11 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
       }
     }
 
-    // Validar email, caso seja enviado
     const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
     if (email && !emailPattern.test(email)) {
       return res.status(400).json({ message: 'Email inválido.' });
     }
 
-    // Verificar se o email já está em uso
     if (email && email !== user.email) {
       const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
@@ -184,7 +179,6 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
       }
     }
 
-    // Validar número de telefone, caso seja enviado
     if (phone_number) {
       try {
         const phonePattern = parsePhoneNumber(phone_number, 'BR');
@@ -196,11 +190,11 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
       }
     }
 
-    // Atualizar os dados do usuário
     user.name = name || user.name;
     user.email = email || user.email;
     user.phone_number = phone_number || user.phone_number;
     user.cpforCnpj = cpforCnpj || user.cpforCnpj;
+    user.profileImage = profileImage || user.profileImage;
 
     await user.save();
 

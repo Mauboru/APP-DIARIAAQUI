@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useTheme } from '../context/ThemeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
+import API_BASE_URL from '../config';
 
 export default function Navbar({ title }) {
   const { theme, isDarkTheme, toggleTheme } = useTheme();
   const [userName, setUserName] = useState('Usuário');
+  const [profileImage, setProfileImage] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const navigation = useNavigation();
 
@@ -18,7 +20,7 @@ export default function Navbar({ title }) {
       
       if (token) {
         try {
-          const response = await axios.get('http://85.31.63.241:3001/users', {
+          const response = await axios.get(`${API_BASE_URL}/users`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -28,13 +30,14 @@ export default function Navbar({ title }) {
             console.error('Erro ao buscar nome do usuário');
             setUserName('Usuário');
           }
+          const profileNumber = response.data.profileImage;
+          setProfileImage(profileNumber);
         } catch (error) {
           console.error('Erro ao buscar dados do usuário:', error); 
         }
       }
     }
     fetchUserName();
-
   }, []); 
 
   const handleLogout = async () => {
@@ -42,23 +45,39 @@ export default function Navbar({ title }) {
     navigation.navigate('Welcome');
   };
 
+  const profileImages = {
+    1: require('../assets/profiles/image1.png'),
+    2: require('../assets/profiles/image2.png'),
+    3: require('../assets/profiles/image3.png'),
+    4: require('../assets/profiles/image4.png'),
+    5: require('../assets/profiles/image5.png'),
+    6: require('../assets/profiles/image6.png'),
+    7: require('../assets/profiles/image7.png'),
+    8: require('../assets/profiles/image8.png'),
+    9: require('../assets/profiles/image9.png'),
+    10: require('../assets/profiles/image10.png'),
+  };  
+
+  const getProfileImageUrl = (profileNumber) => {
+    return profileImages[profileNumber];
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.primary }]}>
       <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
       <View style={styles.rightActions}>
-        <TouchableOpacity onPress={toggleTheme} style={styles.themeToggle}>
-          <Icon
-            name={isDarkTheme ? 'sunny' : 'moon'}
-            size={24}
-            color={theme.text}
-          />
-        </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => setMenuVisible(!menuVisible)}
           style={styles.userIcon}
         >
-          <Icon name="person-circle" size={30} color={theme.text} />
+          {profileImage ? (
+            <Image
+              source={getProfileImageUrl(profileImage)}
+              style={styles.profileImage}
+            />
+          ) : (
+            <Icon name="person-circle" size={30} color={theme.text} />
+          )}
         </TouchableOpacity>
       </View>
 
@@ -145,4 +164,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
   },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 50,
+  }
 });
