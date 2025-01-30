@@ -47,11 +47,6 @@ export default function QrCode({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Navbar
-        title="Tela de QR Code"
-        onBack={() => navigation.goBack()}
-        showBackButton={false}
-      />
       <View style={styles.content}>
         <Button title="Ler QR Code" onPress={handleOpenCam} />
         {/* Modal para a Câmera */}
@@ -94,7 +89,6 @@ export default function QrCode({ navigation }) {
           </View>
         </Modal>
       </View>
-      <Footer setSelected={2} />
     </View>
   );
 }

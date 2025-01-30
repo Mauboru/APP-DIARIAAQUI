@@ -1,75 +1,31 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import React, { useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Welcome, SignIn, ApiTest, Home, Profile, Pokemon, Register, QrCode } from '../pages';
+import React from 'react';
+import { Welcome, SignIn, Home, Profile, Register, QrCode } from '../pages';
+import PrivateRoute from './PrivateRoute';
 
 const Stack = createNativeStackNavigator();
 
 export default function Routes() {
-  const checkAuth = async (navigation, screen) => {
-    const token = await AsyncStorage.getItem('token');
-    if (token) {
-      navigation.navigate(screen);
-    } else {
-      navigation.navigate('SignIn');
-    }
-  };
-
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        animation: 'none',
-      }}
-    >
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Welcome" component={Welcome} />
       <Stack.Screen name="SignIn" component={SignIn} />
       <Stack.Screen name="Register" component={Register} />
-      <Stack.Screen
-        name="Home"
-        component={(props) => {
-          useEffect(() => {
-            checkAuth(props.navigation, 'Home');
-          }, []);
-          return <Home {...props} />;
-        }}
-      />
-      <Stack.Screen 
-        name="Profile"
-        component={(props) => {
-            useEffect(() => {
-            checkAuth(props.navigation, 'Profile');
-            }, []);
-        return <Profile {...props} />;
-        }}
-      />
-      <Stack.Screen 
-        name="Pokemon"
-        component={(props) => {
-            useEffect(() => {
-            checkAuth(props.navigation, 'Pokemon');
-            }, []);
-        return <Pokemon {...props} />;
-        }}
-       />
-      <Stack.Screen 
-        name="QrCode"
-        component={(props) => {
-            useEffect(() => {
-            checkAuth(props.navigation, 'QrCode');
-            }, []);
-        return <QrCode {...props} />;
-        }}
-      />
-      <Stack.Screen 
-        name="ApiTest"
-        component={(props) => {
-            useEffect(() => {
-            checkAuth(props.navigation, 'ApiTest');
-            }, []);
-        return <ApiTest {...props} />;
-        }}
-      />
+      <Stack.Screen name="Home" component={(props) => (
+        <PrivateRoute navigation={props.navigation}>
+          <Home {...props} />
+        </PrivateRoute>
+      )}/>
+      <Stack.Screen name="Profile" component={(props) => (
+        <PrivateRoute navigation={props.navigation}>
+          <Profile {...props} />
+        </PrivateRoute>
+      )}/>
+      <Stack.Screen name="QrCode" component={(props) => (
+        <PrivateRoute navigation={props.navigation}>
+          <QrCode {...props} />
+        </PrivateRoute>
+      )}/>
     </Stack.Navigator>
   );
 }

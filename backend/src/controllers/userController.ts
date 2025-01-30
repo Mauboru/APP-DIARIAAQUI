@@ -154,7 +154,7 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
       return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
 
-    const { name, email, phone_number, cpforCnpj, profileImage } = req.body;
+    const { name, email, phone_number, cpforCnpj } = req.body;
 
     if (cpforCnpj && !(cpf.isValid(cpforCnpj) || cnpj.isValid(cpforCnpj))) {
       return res.status(400).json({ message: 'CPF ou CNPJ inválido.' });
@@ -194,7 +194,6 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
     user.email = email || user.email;
     user.phone_number = phone_number || user.phone_number;
     user.cpforCnpj = cpforCnpj || user.cpforCnpj;
-    user.profileImage = profileImage || user.profileImage;
 
     await user.save();
 

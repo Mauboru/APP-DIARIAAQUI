@@ -1,12 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { Navbar, Footer } from './'; 
 
-export default function Home() {
+export default function MainLayout({ children }) {
   return (
     <View style={styles.container}>
+      <Navbar/>
       <View style={styles.content}>
-        <Text>Bem Vindo a Tela Inicial!</Text>
+        {children} 
       </View>
+      <Footer />
     </View>
   );
 }
@@ -14,11 +17,9 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    flex: 1, 
+    padding: 20,
   },
 });

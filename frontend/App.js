@@ -1,9 +1,9 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
-
 import { NavigationContainer } from '@react-navigation/native';
 import Routes from './src/routes';
+import MainLayout from './src/components/MainLayout';
 
 function AppContent() {
   const { theme } = useTheme();
@@ -15,7 +15,9 @@ function AppContent() {
         barStyle={theme.text === '#FFFFFF' ? 'light-content' : 'dark-content'}
       />
       <NavigationContainer>
-        <Routes />
+        <MainLayout>
+          <Routes />
+        </MainLayout>
       </NavigationContainer>
     </>
   );

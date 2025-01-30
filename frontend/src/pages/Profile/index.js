@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet, Alert, Text, TouchableOpacity } from 'react-native';
-import { Navbar, Footer } from '../../components';
+import { View, TextInput, StyleSheet, Alert, Text, TouchableOpacity, Modal, ScrollView  } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -20,10 +19,6 @@ const formatPhoneNumber = (value) => {
   return value;
 };
 
-const cleanPhoneNumber = (value) => {
-  return value.replace(/\D/g, '');
-};
-
 export default function Profile({ navigation }) {
   const [userData, setUserData] = useState({
     name: '',
@@ -34,6 +29,9 @@ export default function Profile({ navigation }) {
   });
   const [editableFields, setEditableFields] = useState({});
   const [updatedFields, setUpdatedFields] = useState({});
+  const [errorMessage, setErrorMessage] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '' });
 
   useEffect(() => {
     async function loadUserData() {
@@ -70,61 +68,91 @@ export default function Profile({ navigation }) {
     }
 
     const token = await AsyncStorage.getItem('token');
-    if (!token) {
-      Alert.alert('Erro', 'Usuário não autenticado.');
-      return;
-    }
+    if (!token) return Alert.alert('Erro', 'Usuário não autenticado.');
 
     try {
-      let data = { [field]: updatedFields[field] };
-
-      // Limpar o número de telefone antes de enviar para o servidor
-      if (field === 'phone_number') {
-        data = { phone_number: cleanPhoneNumber(updatedFields[field]) };
-      }
-
       const response = await axios.put(
         `${API_BASE_URL}/updateUser`,
-        data,
+        { [field]: updatedFields[field] },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.status === 200) {
-        Alert.alert('Sucesso!', 'Dados do perfil atualizados com sucesso!');
+        Alert.alert('Sucesso!', 'Dados atualizados com sucesso!');
         setEditableFields({ ...editableFields, [field]: false });
         setUpdatedFields({ ...updatedFields, [field]: undefined });
       }
     } catch (error) {
-      console.error('Erro ao salvar os dados:', error);
-      Alert.alert('Erro', 'Não foi possível salvar as alterações.');
+      setErrorMessage(error.response?.data?.message || 'Erro ao atualizar.');
+    }
+  };
+
+  const handleChangePassword = async () => {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) return Alert.alert('Erro', 'Usuário não autenticado.');
+
+    try {
+      const response = await axios.put(
+        `${API_BASE_URL}/updatePassword`,
+        passwords,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.status === 200) {
+        Alert.alert('Sucesso!', 'Senha alterada com sucesso!');
+        setModalVisible(false);
+        setPasswords({ oldPassword: '', newPassword: '' });
+      }
+    } catch (error) {
+      Alert.alert('Erro', error.response?.data?.message || 'Falha ao mudar senha.');
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Navbar title="Perfil de Usuário" onBack={() => navigation.goBack()} showBackButton={true} />
-      <View style={styles.content}>
-        {['name', 'email', 'phone_number', 'cpforCnpj'].map((field) => (
-          <View key={field} style={styles.inputContainer}>
-            <TextInput
-              style={[styles.input, !editableFields[field] && styles.inputDisabled]}
-              value={field === 'phone_number' ? formatPhoneNumber(userData[field]) : userData[field]}
-              onChangeText={(text) => handleChange(field, text)}
-              editable={editableFields[field] || false}
-              placeholder={field.replace('_', ' ')}
-            />
-            <TouchableOpacity onPress={() => editableFields[field] ? handleSave(field) : handleEdit(field)}>
-              <MaterialIcons
-                name={editableFields[field] ? 'check' : 'edit'}
-                size={24}
-                color={editableFields[field] ? 'green' : 'black'}
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <View style={{ flex: 1, justifyContent: 'space-between' }}>
+        <View style={styles.content}>
+          {['name', 'email', 'phone_number', 'cpforCnpj'].map((field) => (
+            <View key={field} style={styles.inputContainer}>
+              <TextInput
+                style={[styles.input, !editableFields[field] && styles.inputDisabled]}
+                value={field === 'phone_number' ? formatPhoneNumber(userData[field]) : userData[field]}
+                onChangeText={(text) => handleChange(field, text)}
+                editable={editableFields[field] || false}
+                placeholder={field.replace('_', ' ')}
               />
+              <TouchableOpacity onPress={() => editableFields[field] ? handleSave(field) : handleEdit(field)}>
+                <MaterialIcons
+                  name={editableFields[field] ? 'check' : 'edit'}
+                  size={24}
+                  color={editableFields[field] ? 'green' : 'black'}
+                />
+              </TouchableOpacity>
+            </View>
+          ))}
+          {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
+        </View>
+  
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.deactivateButton} onPress={() => Alert.alert('Conta desativada!')}>
+            <Text style={styles.buttonText}>Desativar Conta</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.changePasswordButton} onPress={() => setModalVisible(true)}>
+            <Text style={styles.buttonText}>Mudar Senha</Text>
+          </TouchableOpacity>
+        </View>
+  
+        <Modal visible={modalVisible} transparent animationType="slide">
+          <View style={styles.modalContainer}>
+            <TextInput style={styles.input} placeholder="Senha Atual" secureTextEntry onChangeText={(text) => setPasswords({ ...passwords, oldPassword: text })} />
+            <TextInput style={styles.input} placeholder="Nova Senha" secureTextEntry onChangeText={(text) => setPasswords({ ...passwords, newPassword: text })} />
+            <TouchableOpacity style={styles.changePasswordButton} onPress={handleChangePassword}>
+              <Text style={styles.buttonText}>Confirmar</Text>
             </TouchableOpacity>
           </View>
-        ))}
+        </Modal>
       </View>
-      <Footer />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -140,6 +168,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 30,
   },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginTop: 10,
+    alignSelf: 'center',
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -147,11 +181,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    height: 45,
     borderColor: '#ccc',
     borderWidth: 1,
     marginTop: 10,
-    marginBottom: 5,
     paddingHorizontal: 10,
     width: '100%',
     borderRadius: 8,
@@ -161,4 +193,30 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0', 
     color: '#888',
   },
+  buttonContainer: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    width: '80%', 
+    marginBottom: 20, 
+  },  
+  deactivateButton: { 
+    backgroundColor: 'red', 
+    padding: 10, 
+    borderRadius: 8 
+  },
+  changePasswordButton: { 
+    backgroundColor: 'blue', 
+    padding: 10, 
+    borderRadius: 8 
+  },
+  buttonText: { 
+    color: 'white', 
+    fontWeight: 'bold' 
+  },
+  modalContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(0,0,0,0.5)' 
+  }
 });
