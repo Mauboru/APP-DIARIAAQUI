@@ -20,6 +20,7 @@ export default function SignIn() {
   const handleLogin = async () => {
     setIsLoading(true);
     setErrorMessage('');
+    
     try {
       const response = await axios.post(`${API_BASE_URL}/login`, {
         emailOrName: email,

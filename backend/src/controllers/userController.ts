@@ -206,3 +206,39 @@ export const updateUser = async (req: Request, res: Response): Promise<Response>
     return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };
+
+export const updatePassword = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'Token ausente.' });
+    }
+
+    const decoded: any = jwt.verify(token, 'sua_chave_secreta');
+    const userId = decoded.id;
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    const { old_password, new_password } = req.body;
+
+    const isMatch = await bcrypt.compare(old_password, user.password_hash);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Senha antiga incorreta.' });
+    }
+
+    const newPasswordHash = await bcrypt.hash(new_password, 10);
+    user.password_hash = newPasswordHash;
+    await user.save();
+
+    return res.status(200).json({
+      message: 'Senha atualizada com sucesso.',
+      user: { password_hash: user.password_hash },
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar senha:', error);
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+};
