@@ -11,6 +11,7 @@ export default function Routes() {
       <Stack.Screen name="Welcome" component={Welcome} />
       <Stack.Screen name="SignIn" component={SignIn} />
       <Stack.Screen name="Register" component={Register} />
+      
       <Stack.Screen name="Home" component={(props) => (
         <PrivateRoute navigation={props.navigation}>
           <Home {...props} />
