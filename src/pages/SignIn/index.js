@@ -92,8 +92,8 @@ export default function SignIn() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.forgotPassword} onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")}>
-          <Text style={styles.forgotPasswordText}>Esqueceu a senha?</Text>
+        <TouchableOpacity onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")}>
+          <Text>Esqueceu a senha?</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

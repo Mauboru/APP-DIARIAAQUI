@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet, Alert, Text, TouchableOpacity, Modal, ScrollView  } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import API_BASE_URL from '../../config';
 
 const formatPhoneNumber = (value) => {
@@ -18,6 +18,7 @@ const formatPhoneNumber = (value) => {
   }
   return value;
 };
+
 export default function Profile() {
   const [userData, setUserData] = useState({ name: '', email: '', phone_number: '', cpforCnpj: '' });
   const [editableFields, setEditableFields] = useState({});
@@ -25,6 +26,9 @@ export default function Profile() {
   const [errorMessage, setErrorMessage] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '' });
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [passwordColor, setPasswordColor] = useState('red');
 
   useEffect(() => {
     async function loadUserData() {
@@ -108,6 +112,27 @@ export default function Profile() {
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible(!isPasswordVisible);
+  };
+
+  const validatePassword = (input) => {
+    const passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,20}$/;
+    if (!input) {
+      setPasswordMessage('');
+      setPasswordColor('red');
+      return;
+    }
+
+    if (passwordPattern.test(input)) {
+      setPasswordMessage('Senha válida.');
+      setPasswordColor('green');
+    } else {
+      setPasswordMessage('A senha deve ter entre 8 e 20 caracteres, ao menos uma letra maiúscula, uma minúscula, um número e um caractere especial.');
+      setPasswordColor('red');
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View style={styles.content}>
@@ -144,18 +169,39 @@ export default function Profile() {
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Senha Atual"
-              secureTextEntry
-              onChangeText={(text) => setPasswords({ ...passwords, oldPassword: text })}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Nova Senha"
-              secureTextEntry
-              onChangeText={(text) => setPasswords({ ...passwords, newPassword: text })}
-            />
+            <Text style={styles.titlePassword}>Alterar Senha</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                value={passwords.oldPassword}
+                onChangeText={(text) => setPasswords({ ...passwords, oldPassword: text })}
+                secureTextEntry={!isPasswordVisible}
+                placeholder="Sua senha antiga"
+                style={styles.passwordInput} 
+              />
+              <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
+                <Ionicons
+                  name={isPasswordVisible ? 'eye-off' : 'eye'} 
+                  size={24}
+                  color="#a1a1a1"
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                value={passwords.newPassword}
+                onChangeText={(text) => {
+                  setPasswords({ ...passwords, newPassword: text });
+                  validatePassword(text);
+                }}
+                secureTextEntry={!isPasswordVisible}
+                placeholder="Sua senha nova"
+                style={styles.passwordInput} 
+              />
+            </View>
+            <Text style={{ color: passwordColor, fontSize: 12, marginTop: 4 }}>{passwordMessage}</Text>
+            <TouchableOpacity onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")}>
+              <Text>Esqueceu a senha?</Text>
+            </TouchableOpacity>
             <View style={styles.modalButtonsContainer}>
               <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
                 <Text style={styles.buttonText}>Cancelar</Text>
@@ -259,4 +305,23 @@ const styles = StyleSheet.create({
     width: '45%',
     alignItems: 'center',
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1, 
+    marginBottom: 12,
+  },
+  passwordInput: {
+    flex: 1, 
+    height: 40,
+    fontSize: 16,
+    padding: 0,
+  },
+  titlePassword: {
+    color: 'black',
+    fontSize: 18,
+    marginTop: 10,
+    marginBottom: 10,
+    alignSelf: 'center',
+  }
 });
