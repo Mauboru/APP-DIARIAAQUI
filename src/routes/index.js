@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { Welcome, SignIn, Home, Profile, Register, QrCode } from '../pages';
+import { Welcome, SignIn, Home, Profile, Register, QrCode, Servicos } from '../pages';
 import PrivateRoute from './PrivateRoute';
 
 const Stack = createNativeStackNavigator();
@@ -25,6 +25,11 @@ export default function Routes() {
       <Stack.Screen name="QrCode" component={(props) => (
         <PrivateRoute navigation={props.navigation}>
           <QrCode {...props} />
+        </PrivateRoute>
+      )}/>
+      <Stack.Screen name="Servicos" component={(props) => (
+        <PrivateRoute navigation={props.navigation}>
+          <Servicos {...props} />
         </PrivateRoute>
       )}/>
     </Stack.Navigator>

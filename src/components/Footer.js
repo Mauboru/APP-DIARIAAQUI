@@ -28,6 +28,15 @@ export default function Footer({ setSelected }) {
         <Icon name={selected === 1 ? 'qr-code' : 'qr-code-outline'} size={24} color={theme.text} />
         <Text style={[styles.label, { color: theme.text }]}>QrCode</Text>
       </TouchableOpacity>
+
+      {/* Servicos */}
+      <TouchableOpacity 
+        style={[styles.button, { opacity: selected === 1 ? 1 : 0.5 }]} 
+        onPress={() => navigation.navigate('Servicos')}
+      >
+        <Icon name={selected === 1 ? 'rocket' : 'rocket-outline'} size={24} color={theme.text} />
+        <Text style={[styles.label, { color: theme.text }]}>Serviços</Text>
+      </TouchableOpacity>
     </View>
   );
 }
