@@ -5,4 +5,3 @@ export { default as Welcome } from './Welcome';
 export { default as Register } from './Register';
 export { default as QrCode } from './QrCode';
 export { default as Servicos } from './Servicos';
-export { default as CanalSueste } from './CanalSueste';

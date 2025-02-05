@@ -87,9 +87,6 @@ export default function Navbar({ title }) {
           <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('Profile')}>
             <Text style={styles.menuButtonText}>Editar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('CanalSueste')}>
-            <Text style={styles.menuButtonText}>CanalSueste</Text>
-          </TouchableOpacity>
           <TouchableOpacity style={styles.menuButtonLogout} onPress={handleLogout}>
             <Text style={styles.menuButtonLogoutText}>Sair</Text>
           </TouchableOpacity>

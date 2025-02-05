@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Animatable from 'react-native-animatable';
 import DateTimePicker from 'react-native-modal-datetime-picker';
@@ -10,18 +11,23 @@ import axios from 'axios';
 import API_BASE_URL from '../../config';
 
 export default function Servicos() {
+  const navigation = useNavigation();
+
   const [isLoading, setIsLoading] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
-  const [date, setDate] = useState(''); 
+  const [date_initial, setDateInitial] = useState(''); 
+  const [date_final, setDateFinal] = useState(''); 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [datePickerMode, setDatePickerMode] = useState('');
   const [pay, setPay] = useState('');
   const [status, setStatus] = useState('open');
   const [errorMessage, setErrorMessage] = useState('');
   const [editable, setEditable] = useState(false);
 
-  const showDatePicker = () => {
+  const showDatePicker = (mode) => {
+    setDatePickerMode(mode);
     setDatePickerVisibility(true);
   };
 
@@ -29,8 +35,12 @@ export default function Servicos() {
     setDatePickerVisibility(false);
   };
 
-  const handleConfirm = (selectedDate) => {
-    setDate(moment(selectedDate).format('YYYY-MM-DD')); 
+  const handleConfirmDate = (selectedDate) => {
+    if (datePickerMode === 'initial') {
+      setDateInitial(moment(selectedDate).format('YYYY-MM-DD'));
+    } else if (datePickerMode === 'final') {
+      setDateFinal(moment(selectedDate).format('YYYY-MM-DD'));
+    }
     hideDatePicker();
   };
 
@@ -48,7 +58,7 @@ export default function Servicos() {
 
         const response = await axios.post(
             `${API_BASE_URL}/registerService`,
-            { title, description, location, date, pay, status },
+            { title, description, location, date_initial, date_final, pay, status },
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -65,7 +75,7 @@ export default function Servicos() {
     }
 };
   
-  const isButtonDisabled = !title.trim() || !description.trim() || !location.trim() || !date.trim() || !pay.trim() || !status.trim();
+  const isButtonDisabled = !title.trim() || !description.trim() || !location.trim() || !date_initial.trim() || !date_final.trim() || !pay.trim();
 
   return (
     <ScrollView style={styles.container}>
@@ -93,10 +103,12 @@ export default function Servicos() {
         value={description}
         onChangeText={setDescription}
         placeholder="Digite sua descrição"
-        style={styles.input}
-        multiline
+        style={[styles.input, { height: 120, textAlignVertical: 'top' }]}
+        multiline={true}
+        numberOfLines={4}  
       />
-      
+
+      {/* Inserir futuramente API que busca CEP */}
       <Text style={styles.title}>Local do Serviço</Text>
       <TextInput
         value={location}
@@ -105,36 +117,42 @@ export default function Servicos() {
         style={styles.input}
       />
       
-      <Text style={styles.title}>Data</Text>
-      <TouchableOpacity onPress={showDatePicker} style={styles.dateInput}>
-        <Text style={date ? styles.dateText : styles.placeholderText}>
-          {date ? moment(date).format('DD/MM/YYYY') : 'Selecione a data'}
+      <Text style={styles.title}>Data Inicial</Text>
+      <TouchableOpacity onPress={() => showDatePicker('initial')} style={styles.dateInput}>
+        <Text style={date_initial ? styles.dateText : styles.placeholderText}>
+          {date_initial ? moment(date_initial).format('DD/MM/YYYY') : 'Selecione a data'}
         </Text>
       </TouchableOpacity>
-      
+
+      <Text style={styles.title}>Data Final</Text>
+      <TouchableOpacity onPress={() => showDatePicker('final')} style={styles.dateInput}>
+        <Text style={date_final ? styles.dateText : styles.placeholderText}>
+          {date_final ? moment(date_final).format('DD/MM/YYYY') : 'Selecione a data'}
+        </Text>
+      </TouchableOpacity>
+
       <DateTimePicker
           isVisible={isDatePickerVisible}
           mode="date"
-          onConfirm={handleConfirm}
+          onConfirm={handleConfirmDate}
           onCancel={hideDatePicker}
         />
       
       <Text style={styles.title}>Pagamento</Text>
-      <MaskedTextInput
-        type="money"
-        options={{
-          prefix: 'R$ ',
-          decimalSeparator: ',',
-          groupSeparator: '.',
-          precision: 2,
-        }}
+      <TextInput
         value={pay}
-        onChangeText={(masked, unmasked) => setPay(unmasked)} // `unmasked` mantém apenas números
+        onChangeText={(text) => {
+          // Permite apenas números e ponto/virgula para decimais
+          if (/^\d*([.,]?\d{0,2})$/.test(text)) {
+            setPay(text);
+          }
+        }}
         placeholder="R$ 0,00"
         style={styles.input}
-        keyboardType="numeric"
+        keyboardType="decimal-pad"
       />
-      
+
+
       <Text style={styles.title}>Status</Text>
       <TextInput
         editable={false}
@@ -203,10 +221,12 @@ const styles = StyleSheet.create({
     marginTop: 28,
   },
   input: {
-    borderBottomWidth: 1,
-    height: 40,
-    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    borderRadius: 5,
     fontSize: 16,
+    backgroundColor: '#fff',
   },
   button: {
     backgroundColor: '#38a69d',
