@@ -12,26 +12,34 @@ export default function Routes() {
       <Stack.Screen name="SignIn" component={SignIn} />
       <Stack.Screen name="Register" component={Register} />
       
-      <Stack.Screen name="Home" component={(props) => (
+      <Stack.Screen name="Home">
+      {(props) => (
         <PrivateRoute navigation={props.navigation}>
           <Home {...props} />
         </PrivateRoute>
-      )}/>
-      <Stack.Screen name="Profile" component={(props) => (
+      )}
+      </Stack.Screen>
+      <Stack.Screen name="Profile"> 
+      {(props) => (
         <PrivateRoute navigation={props.navigation}>
           <Profile {...props} />
         </PrivateRoute>
-      )}/>
-      <Stack.Screen name="QrCode" component={(props) => (
+      )}
+      </Stack.Screen>
+      <Stack.Screen name="QrCode">
+        {(props) => (
         <PrivateRoute navigation={props.navigation}>
           <QrCode {...props} />
         </PrivateRoute>
-      )}/>
-      <Stack.Screen name="Servicos" component={(props) => (
+      )}
+      </Stack.Screen>
+      <Stack.Screen name="Servicos">
+        {(props) => (
         <PrivateRoute navigation={props.navigation}>
           <Servicos {...props} />
         </PrivateRoute>
-      )}/>
+      )}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 }

@@ -57,7 +57,8 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 15,
-    paddingBottom: 30,
+    paddingBottom: 70,
+    paddingTop: 80,
   },
   card: {
     backgroundColor: '#fff',

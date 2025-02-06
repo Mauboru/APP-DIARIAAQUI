@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Navbar, Footer } from './'; 
+import Navbar from './Navbar';
+import Footer from './Footer';
 import { useNavigationState } from '@react-navigation/native';
 
 export default function MainLayout({ children }) {
@@ -21,8 +22,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingTop: 60,
-    paddingBottom: 50,
     flex: 1, 
   },
 });
