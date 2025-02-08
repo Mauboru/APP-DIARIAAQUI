@@ -58,7 +58,7 @@ export default function SignUp() {
     try {
       const cleanedPhoneNumber = cleanPhoneNumber(phoneNumber);
 
-      const response = await axios.post(`${API_BASE_URL}/registerUser`, {
+      const response = await axios.post(`${API_BASE_URL}/register`, {
         cpforCnpj,
         name,
         email,
@@ -85,7 +85,7 @@ export default function SignUp() {
   const isButtonDisabled = !name.trim() || !email.trim() || !phoneNumber.trim() || !cpforCnpj.trim() || !password.trim() ;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView  ew style={styles.container}>
       {isLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#FFF" />

@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import Navbar from './Navbar';
-import Footer from './Footer';
+import { Navbar, Footer } from './'; 
 import { useNavigationState } from '@react-navigation/native';
 
 export default function MainLayout({ children }) {

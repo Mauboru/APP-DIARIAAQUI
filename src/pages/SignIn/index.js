@@ -36,6 +36,7 @@ export default function SignIn() {
         }
       }
     } catch (error) {
+      console.error(error);
       if (error.response && error.response.status === 404) {
         setErrorMessage('Email ou senha incorretos. Tente novamente.');
       } else {
