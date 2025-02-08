@@ -58,7 +58,7 @@ export default function SignUp() {
     try {
       const cleanedPhoneNumber = cleanPhoneNumber(phoneNumber);
 
-      const response = await axios.post(`${API_BASE_URL}/register`, {
+      const response = await axios.post(`${API_BASE_URL}/registerUser`, {
         cpforCnpj,
         name,
         email,
