@@ -9,7 +9,6 @@ export default function MainLayout({ children }) {
 
   return (
     <View style={styles.container}>
-      {!hideLayout && <Navbar />}
       <View style={styles.content}>{children}</View>
       {!hideLayout && <Footer />}
     </View>

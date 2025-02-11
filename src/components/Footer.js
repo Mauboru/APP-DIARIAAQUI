@@ -37,6 +37,15 @@ export default function Footer({ setSelected }) {
         <Icon name={selected === 1 ? 'rocket' : 'rocket-outline'} size={24} color={theme.text} />
         <Text style={[styles.label, { color: theme.text }]}>Serviços</Text>
       </TouchableOpacity>
+
+      {/* Profile */}
+      <TouchableOpacity 
+        style={[styles.button, { opacity: selected === 1 ? 1 : 0.5 }]} 
+        onPress={() => navigation.navigate('Profile')}
+      >
+        <Icon name={selected === 1 ? 'person' : 'person-outline'} size={24} color={theme.text} />
+        <Text style={[styles.label, { color: theme.text }]}>Perfil</Text>
+      </TouchableOpacity>
     </View>
   );
 }
