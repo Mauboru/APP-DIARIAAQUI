@@ -29,8 +29,10 @@ export default function SignIn() {
 
       if (response.status === 200) {
         const token = response.data.token;
+        const userId = response.data.user.id;
         if (token) {
           await AsyncStorage.setItem('token', token);
+          await AsyncStorage.setItem('userId', String(userId));
           setIsLoggedIn(true);
           navigation.navigate('Home'); 
         }

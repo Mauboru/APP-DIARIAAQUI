@@ -11,36 +11,27 @@ export default function Footer({ setSelected }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.primary }]}>
-      {/* Home */}
-      <TouchableOpacity 
-        style={[styles.button, { opacity: selected === 0 ? 1 : 0.5 }]} 
-        onPress={() => navigation.navigate('Home')}
-      >
-        <Icon name={selected === 0 ? 'home' : 'home-outline'} size={24} color={theme.text} />
-        <Text style={[styles.label, { color: theme.text }]}>Início</Text>
-      </TouchableOpacity>
-
-      {/* QrCode */}
-      <TouchableOpacity 
-        style={[styles.button, { opacity: selected === 1 ? 1 : 0.5 }]} 
-        onPress={() => navigation.navigate('QrCode')}
-      >
-        <Icon name={selected === 1 ? 'qr-code' : 'qr-code-outline'} size={24} color={theme.text} />
-        <Text style={[styles.label, { color: theme.text }]}>QrCode</Text>
-      </TouchableOpacity>
-
       {/* Servicos */}
       <TouchableOpacity 
-        style={[styles.button, { opacity: selected === 1 ? 1 : 0.5 }]} 
+        style={[styles.button, { opacity: selected === 0 ? 1 : 0.5 }]} 
         onPress={() => navigation.navigate('Servicos')}
       >
         <Icon name={selected === 1 ? 'rocket' : 'rocket-outline'} size={24} color={theme.text} />
         <Text style={[styles.label, { color: theme.text }]}>Serviços</Text>
       </TouchableOpacity>
 
-      {/* Profile */}
+      {/* Home */}
       <TouchableOpacity 
         style={[styles.button, { opacity: selected === 1 ? 1 : 0.5 }]} 
+        onPress={() => navigation.navigate('Home')}
+      >
+        <Icon name={selected === 0 ? 'home' : 'home-outline'} size={24} color={theme.text} />
+        <Text style={[styles.label, { color: theme.text }]}>Início</Text>
+      </TouchableOpacity>
+
+      {/* Profile */}
+      <TouchableOpacity 
+        style={[styles.button, { opacity: selected === 2 ? 1 : 0.5 }]} 
         onPress={() => navigation.navigate('Profile')}
       >
         <Icon name={selected === 1 ? 'person' : 'person-outline'} size={24} color={theme.text} />

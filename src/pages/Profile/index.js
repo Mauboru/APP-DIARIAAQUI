@@ -1,34 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet, Alert, Text, TouchableOpacity, Modal, ScrollView  } from 'react-native';
+import { View, TextInput, StyleSheet, Alert, Text, TouchableOpacity, Modal, ScrollView, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
 import API_BASE_URL from '../../config';
+import * as Animatable from 'react-native-animatable';
+import { useNavigation } from '@react-navigation/native';
 
 const formatPhoneNumber = (value) => {
   value = value.replace(/\D/g, '');
-  if (value.length == 0) {
-    value = '';
+  if (value.length === 0) {
+    return '';
   } else if (value.length <= 2) {
-    value = `(${value}`;
+    return `(${value}`;
   } else if (value.length <= 7) {
-    value = `(${value.substring(0, 2)}) ${value.substring(2)}`;
+    return `(${value.substring(0, 2)}) ${value.substring(2)}`;
   } else {
-    value = `(${value.substring(0, 2)}) ${value.substring(2, 3)} ${value.substring(3, 7)}-${value.substring(7, 11)}`;
+    return `(${value.substring(0, 2)}) ${value.substring(2, 3)} ${value.substring(3, 7)}-${value.substring(7, 11)}`;
   }
-  return value;
 };
 
 export default function Profile() {
   const [userData, setUserData] = useState({ name: '', email: '', phone_number: '', cpforCnpj: '' });
   const [editableFields, setEditableFields] = useState({});
   const [updatedFields, setUpdatedFields] = useState({});
-  const [errorMessage, setErrorMessage] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '' });
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState('');
   const [passwordColor, setPasswordColor] = useState('red');
+  const [profileImage, setProfileImage] = useState(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     async function loadUserData() {
@@ -37,26 +39,17 @@ export default function Profile() {
         const response = await axios.get(`${API_BASE_URL}/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-
         if (response.data) {
           setUserData(response.data);
+          const profileNumber = response.data.profileImage;
+          setProfileImage(profileNumber);
         }
       } catch (error) {
-        console.error('Erro ao carregar dados do usuário:', error);
         Alert.alert('Erro', 'Não foi possível carregar os dados do perfil.');
       }
     }
     loadUserData();
   }, []);
-
-  const handleEdit = (field) => {
-    setEditableFields({ ...editableFields, [field]: !editableFields[field] });
-  };
-
-  const handleChange = (field, value) => {
-    setUserData({ ...userData, [field]: value });
-    setUpdatedFields({ ...updatedFields, [field]: value });
-  };
 
   const handleSave = async (field) => {
     if (!updatedFields[field]) {
@@ -133,38 +126,73 @@ export default function Profile() {
     }
   };
 
+  const handleEdit = (field) => {
+    setEditableFields({ ...editableFields, [field]: !editableFields[field] });
+  };
+
+  const handleChange = (field, value) => {
+    setUserData({ ...userData, [field]: value });
+    setUpdatedFields({ ...updatedFields, [field]: value });
+  };
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('userId');
+    navigation.navigate('Welcome');
+  };
+
+  const profileImages = {
+    1: require('../../assets/profiles/image1.png'),
+    2: require('../../assets/profiles/image2.png'),
+    3: require('../../assets/profiles/image3.png'),
+    4: require('../../assets/profiles/image4.png'),
+    5: require('../../assets/profiles/image5.png'),
+    6: require('../../assets/profiles/image6.png'),
+    7: require('../../assets/profiles/image7.png'),
+    8: require('../../assets/profiles/image8.png'),
+    9: require('../../assets/profiles/image9.png'),
+    10: require('../../assets/profiles/image10.png'),
+  };
+
+  const getProfileImageUrl = (profileNumber) => {
+    return profileImages[profileNumber];
+  };
+
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-      <View style={styles.content}>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Animatable.View animation="fadeInDown" style={styles.profileContainer}>
+        <Image
+          source={getProfileImageUrl(profileImage)}
+          style={styles.profileImage}
+        />
+        <Text style={styles.username}>{userData.name || 'Usuário'}</Text>
+      </Animatable.View>
+
+      <Animatable.View animation="fadeInUp" style={styles.content}>
         {['name', 'email', 'phone_number', 'cpforCnpj'].map((field) => (
           <View key={field} style={styles.inputContainer}>
             <TextInput
-              style={[styles.input, !editableFields[field] && styles.inputDisabled]}
+              style={styles.input}
               value={field === 'phone_number' ? formatPhoneNumber(userData[field]) : userData[field]}
               onChangeText={(text) => handleChange(field, text)}
               editable={editableFields[field] || false}
               placeholder={field.replace('_', ' ')}
             />
-            <TouchableOpacity onPress={() => editableFields[field] ? handleSave(field) : handleEdit(field)}>
-              <MaterialIcons
-                name={editableFields[field] ? 'check' : 'edit'}
-                size={24}
-                color={editableFields[field] ? 'green' : 'black'}
-              />
+            <TouchableOpacity onPress={() => editableFields[field] ? handleEdit(field) : handleEdit(field)}>
+              <MaterialIcons name={editableFields[field] ? 'check' : 'edit'} size={24} color={editableFields[field] ? 'green' : 'black'} />
             </TouchableOpacity>
           </View>
         ))}
-        {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
-        
+
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.deactivateButton} onPress={() => Alert.alert('Conta desativada!')}>
-            <Text style={styles.buttonText}>Desativar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.changePasswordButton} onPress={() => setModalVisible(true)}>
+          <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
             <Text style={styles.buttonText}>Mudar Senha</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
+            <Text style={styles.buttonText}>Logout</Text>
+          </TouchableOpacity>
         </View>
-      </View>
+      </Animatable.View>
 
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalBackground}>
@@ -218,13 +246,27 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#38a69d',
+  },
+  containerHeader: {
+    marginTop: '14%',
+    marginBottom: '8%',
+    paddingStart: '5%',
+  },
+  message: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFF',
+  },
   content: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 30,
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 15,
+    marginTop: 10,
   },
   errorText: {
     color: 'red',
@@ -323,5 +365,69 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
     alignSelf: 'center',
-  }
+  },
+  container: {
+    flexGrow: 1,
+    backgroundColor: '#38a69d',
+    alignItems: 'center',
+  },
+  profileContainer: {
+    alignItems: 'center',
+    marginTop: 50,
+    marginBottom: 20,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#ddd',
+  },
+  username: {
+    marginTop: 10,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  content: {
+    width: '90%',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    marginBottom: 12,
+  },
+  input: {
+    flex: 1,
+    height: 45,
+    fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 20,
+  },
+  button: {
+    flex: 1,
+    backgroundColor: '#007BFF',
+    padding: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  logoutButton: {
+    backgroundColor: 'red',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
 });
