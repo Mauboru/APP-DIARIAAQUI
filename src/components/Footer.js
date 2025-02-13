@@ -1,23 +1,21 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { useTheme } from '../context/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 
 export default function Footer({ setSelected }) {
-  const { theme } = useTheme();
   const navigation = useNavigation();
   const selected = parseInt(setSelected, 10); 
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.primary }]}>
+    <View style={[styles.container, { backgroundColor: '#38a69d' }]}>
       {/* Servicos */}
       <TouchableOpacity 
         style={[styles.button, { opacity: selected === 0 ? 1 : 0.5 }]} 
         onPress={() => navigation.navigate('Servicos')}
       >
-        <Icon name={selected === 1 ? 'rocket' : 'rocket-outline'} size={24} color={theme.text} />
-        <Text style={[styles.label, { color: theme.text }]}>Serviços</Text>
+        <Icon name={selected === 1 ? 'rocket' : 'rocket-outline'} size={24} color={'#212121'} />
+        <Text style={[styles.label, {  color: '#212121' }]}>Serviços</Text>
       </TouchableOpacity>
 
       {/* Home */}
@@ -25,8 +23,8 @@ export default function Footer({ setSelected }) {
         style={[styles.button, { opacity: selected === 1 ? 1 : 0.5 }]} 
         onPress={() => navigation.navigate('Home')}
       >
-        <Icon name={selected === 0 ? 'home' : 'home-outline'} size={24} color={theme.text} />
-        <Text style={[styles.label, { color: theme.text }]}>Início</Text>
+        <Icon name={selected === 0 ? 'home' : 'home-outline'} size={24} color={'#212121'} />
+        <Text style={[styles.label, { color: '#212121' }]}>Início</Text>
       </TouchableOpacity>
 
       {/* Profile */}
@@ -34,8 +32,8 @@ export default function Footer({ setSelected }) {
         style={[styles.button, { opacity: selected === 2 ? 1 : 0.5 }]} 
         onPress={() => navigation.navigate('Profile')}
       >
-        <Icon name={selected === 1 ? 'person' : 'person-outline'} size={24} color={theme.text} />
-        <Text style={[styles.label, { color: theme.text }]}>Perfil</Text>
+        <Icon name={selected === 1 ? 'person' : 'person-outline'} size={24} color={'#212121'} />
+        <Text style={[styles.label, { color: '#212121' }]}>Perfil</Text>
       </TouchableOpacity>
     </View>
   );

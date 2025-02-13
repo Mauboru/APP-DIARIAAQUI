@@ -3,12 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { Welcome, SignIn, Home, Profile, Register, QrCode, Servicos } from '../pages';
 import PrivateRoute from './PrivateRoute';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator, View } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
 export default function Routes() {
-  const [isLoading, setIsLoading] = useState(true);
   const [initialRoute, setInitialRoute] = useState('Welcome');
 
   useEffect(() => {
@@ -20,19 +18,12 @@ export default function Routes() {
     checkUserAuth();
   }, []);
 
-  if (isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#38a69d" />
-      </View>
-    );
-  }
-
   return (
     <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Welcome" component={Welcome} />
       <Stack.Screen name="SignIn" component={SignIn} />
       <Stack.Screen name="Register" component={Register} />
+
       <Stack.Screen name="Home">
         {(props) => (
           <PrivateRoute navigation={props.navigation}>
