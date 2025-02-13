@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Navbar, Footer } from './'; 
 import { useNavigationState } from '@react-navigation/native';
+import Footer from './Footer';
 
 export default function MainLayout({ children }) {
   const currentRoute = useNavigationState(state => state?.routes[state.index]?.name);

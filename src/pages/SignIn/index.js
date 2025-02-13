@@ -10,7 +10,7 @@ import API_BASE_URL from '../../config';
 export default function SignIn() {
   const navigation = useNavigation();
 
-  const [email, setEmail] = useState('');
+  const [cpfOrCnpjOrName, setCpfOrCnpjOrName] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false); 
@@ -23,7 +23,7 @@ export default function SignIn() {
     
     try {
       const response = await axios.post(`${API_BASE_URL}/login`, {
-        emailOrName: email,
+        cpfOrCnpjOrName: cpfOrCnpjOrName,
         password,
       });
 
@@ -34,7 +34,10 @@ export default function SignIn() {
           await AsyncStorage.setItem('token', token);
           await AsyncStorage.setItem('userId', String(userId));
           setIsLoggedIn(true);
-          navigation.navigate('Home'); 
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Home' }],
+          });
         }
       }
     } catch (error) {
@@ -53,7 +56,7 @@ export default function SignIn() {
     setIsPasswordVisible(!isPasswordVisible);
   };
 
-  const isButtonDisabled = !email.trim() || !password.trim();
+  const isButtonDisabled = !cpfOrCnpjOrName.trim() || !password.trim();
 
   return (
     <View style={styles.container}>
@@ -68,11 +71,11 @@ export default function SignIn() {
       </Animatable.View>
 
       <Animatable.View animation="fadeInUp" style={styles.containerForm}>
-        <Text style={styles.title}>Email</Text>
+        <Text style={styles.title}>Usuario</Text>
         <TextInput
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Seu email/nome..."
+          value={cpfOrCnpjOrName}
+          onChangeText={setCpfOrCnpjOrName}
+          placeholder="Seu cpf/cnpj/nome..."
           style={styles.input}
         />
 

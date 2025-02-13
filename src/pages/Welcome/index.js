@@ -1,22 +1,10 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Animatable from 'react-native-animatable';
 
 export default function Welcome() {
   const navigation = useNavigation();
-
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      const token = await AsyncStorage.getItem('token');
-      if (token) {
-        navigation.navigate('Home');
-      }
-    };
-
-    checkLoginStatus();
-  }, [navigation]);
 
   return (
     <View style={styles.container}>

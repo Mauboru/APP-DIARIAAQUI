@@ -138,7 +138,10 @@ export default function Profile() {
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token');
     await AsyncStorage.removeItem('userId');
-    navigation.navigate('Welcome');
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Welcome' }],
+    });
   };
 
   const profileImages = {
