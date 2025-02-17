@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
-import { Welcome, SignIn, Home, Profile, Register, QrCode, Servicos } from '../pages';
+import { Welcome, SignIn, Home, Profile, Register, QrCode, Servicos, PhoneVerification } from '../pages';
 import PrivateRoute from './PrivateRoute';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -23,6 +23,7 @@ export default function Routes() {
       <Stack.Screen name="Welcome" component={Welcome} />
       <Stack.Screen name="SignIn" component={SignIn} />
       <Stack.Screen name="Register" component={Register} />
+      <Stack.Screen name="PhoneVerification" component={PhoneVerification} />
 
       <Stack.Screen name="Home">
         {(props) => (

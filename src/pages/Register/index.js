@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SignUp() {
   const navigation = useNavigation();
@@ -33,7 +34,8 @@ export default function SignUp() {
   };
 
   const cleanPhoneNumber = (value) => {
-    return value.replace(/\D/g, '');
+    const cleanedValue = value.replace(/\D/g, '');
+    return `+55${cleanedValue}`;
   };
 
   const validatePassword = (input) => {
@@ -58,6 +60,8 @@ export default function SignUp() {
     try {
       const cleanedPhoneNumber = cleanPhoneNumber(phoneNumber);
 
+      await AsyncStorage.setItem('phoneNumber', cleanedPhoneNumber);
+
       const response = await axios.post(`${API_BASE_URL}/registerUser`, {
         cpforCnpj,
         name,
@@ -68,7 +72,7 @@ export default function SignUp() {
 
       if (response.status === 201) {
         Alert.alert('Sucesso', response.data.message);
-        navigation.navigate('SignIn'); 
+        navigation.navigate('PhoneVerification'); 
       }
     } catch (error) {
       console.error(error);
