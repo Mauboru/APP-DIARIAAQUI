@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, ActivityIndicator, TextInput } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import API_BASE_URL from '../../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -9,9 +9,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function PhoneVerification() {
   const navigation = useNavigation();
   const [code, setCode] = useState(['', '', '', '']);
-  const [phone_number, setPhone_number] = useState('');
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [timer, setTimer] = useState(30);
+  const inputs = useRef([]);
+
+  useEffect(() => {
+    if (timer > 0) {
+      const interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
+      return () => clearInterval(interval);
+    }
+  }, [timer]);
 
   const handleRegister = async () => {
     const storedPhoneNumber = await AsyncStorage.getItem('phoneNumber');
@@ -31,7 +39,7 @@ export default function PhoneVerification() {
 
       if (response.status === 201) {
         Alert.alert('Sucesso', response.data.message);
-        navigation.navigate('SignIn'); 
+        navigation.navigate('SignIn');
       }
     } catch (error) {
       console.error(error);
@@ -45,10 +53,51 @@ export default function PhoneVerification() {
     }
   };
 
-  const isButtonDisabled = code.some(digit => digit.trim() === '');
+  const handleCodeChange = (text, index) => {
+    if (/[^0-9]/.test(text)) return; 
+
+    const newCode = [...code];
+    newCode[index] = text;
+    setCode(newCode);
+
+    if (text && index < 3) {
+      inputs.current[index + 1]?.focus();
+    }
+  };
+
+  const resendCode = () => {
+    setTimer(1);
+    setErrorMessage('');
+    resendCodeApi();
+  };
+
+  const resendCodeApi = async () => {
+    setIsLoading(true);
+    try {
+      const storedPhoneNumber = await AsyncStorage.getItem('phoneNumber');
+
+      const response = await axios.post(`${API_BASE_URL}/sendVerificationCodeAPI`, {
+        phone_number: storedPhoneNumber
+      });
+
+      if (response.status === 201) {
+        Alert.alert('Sucesso', response.data.message);
+        navigation.navigate('PhoneVerification'); 
+      }
+    } catch (error) {
+      console.error(error);
+      if (error.response && error.response.status === 400) {
+        setErrorMessage(error.response.data.message);
+      } else {
+        setErrorMessage('Erro ao tentar registrar. Tente novamente.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       {isLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#FFF" />
@@ -64,31 +113,33 @@ export default function PhoneVerification() {
           {code.map((digit, index) => (
             <TextInput
               key={index}
+              ref={(el) => (inputs.current[index] = el)}
               style={styles.codeInput}
               maxLength={1}
               keyboardType="numeric"
               value={digit}
-              onChangeText={(text) => {
-                const newCode = [...code];
-                newCode[index] = text;
-                setCode(newCode);
-              }}
+              onChangeText={(text) => handleCodeChange(text, index)}
               autoFocus={index === 0}
             />
           ))}
         </View>
 
+        <Text style={styles.timerText}>Reenviar código em {timer}s</Text>
+
         <TouchableOpacity
-          style={[styles.button, isButtonDisabled && styles.buttonDisabled]}
+          style={[styles.button, code.includes('') && styles.buttonDisabled]}
           onPress={handleRegister}
-          disabled={isButtonDisabled}
+          disabled={code.includes('')}
         >
           <Text style={styles.buttonText}>Confirmar</Text>
         </TouchableOpacity>
 
-        {/* Chamar função de enviar codigo novamente e estabelecer um contador */}
-        <TouchableOpacity style={styles.buttonLogin} onPress={() => navigation.navigate('SignIn')}>
-          <Text style={styles.loginText}>Perdeu o código? Peça de novo!</Text>
+        <TouchableOpacity
+          style={[styles.buttonLogin, timer > 0 && styles.buttonDisabled]}
+          onPress={resendCode}
+          disabled={timer > 0}
+        >
+          <Text style={[styles.anchorText, timer > 0 && styles.anchorTextDisabled]}>Perdeu o código? Peça de novo!</Text>
         </TouchableOpacity>
 
         {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
@@ -110,19 +161,15 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#38a69d',
+    padding: 20,
   },
   containerHeader: {
-    marginTop: '14%',
     marginBottom: '8%',
-    paddingStart: '5%',
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 14,
-    marginTop: 10,
-    alignSelf: 'center',
+    alignItems: 'center',
   },
   message: {
     fontSize: 28,
@@ -131,16 +178,15 @@ const styles = StyleSheet.create({
   },
   containerForm: {
     backgroundColor: '#FFF',
-    flex: 1,
-    borderTopLeftRadius: 25,
-    borderTopRightRadius: 25,
-    paddingStart: '5%',
-    paddingEnd: '5%',
+    width: '100%',
+    borderRadius: 25,
+    padding: 20,
+    alignItems: 'center',
   },
   codeInputContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
+    justifyContent: 'center',
+    marginBottom: 20,
   },
   codeInput: {
     width: 50,
@@ -151,18 +197,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 18,
     fontWeight: 'bold',
+    marginHorizontal: 5,
+  },
+  timerText: {
+    marginBottom: 10,
+    color: '#a1a1a1',
   },
   button: {
     backgroundColor: '#38a69d',
-    width: '100%',
+    width: '80%',
     borderRadius: 4,
-    paddingVertical: 8,
-    marginTop: 14,
+    paddingVertical: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   buttonDisabled: {
-    backgroundColor: '#a1a1a1',
+    opacity: 0.5,
   },
   buttonText: {
     color: '#FFF',
@@ -171,10 +221,16 @@ const styles = StyleSheet.create({
   },
   buttonLogin: {
     marginTop: 14,
-    alignSelf: 'center',
   },
-  loginText: {
-    color: '#a1a1a1',
-    padding: 20,
+  anchorText: {
+    color: '#38a69d',
+  },
+  anchorTextDisabled: {
+    opacity: 0.5,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginTop: 10,
   },
 });

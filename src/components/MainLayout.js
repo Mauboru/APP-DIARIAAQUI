@@ -5,7 +5,7 @@ import Footer from './Footer';
 
 export default function MainLayout({ children }) {
   const currentRoute = useNavigationState(state => state?.routes[state.index]?.name);
-  const hideLayout = ['Welcome', 'SignIn', 'Register'].includes(currentRoute);
+  const hideLayout = ['Welcome', 'SignIn', 'Register', 'PhoneVerification'].includes(currentRoute);
 
   return (
     <View style={styles.container}>
