@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, TextInput, StyleSheet, Alert, Text, TouchableOpacity, Modal, ScrollView, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import Icon from 'react-native-vector-icons/Ionicons';
 import API_BASE_URL from '../../config';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
@@ -22,14 +22,15 @@ const formatPhoneNumber = (value) => {
 
 export default function Profile() {
   const [userData, setUserData] = useState({ name: '', email: '', phone_number: '', cpforCnpj: '' });
-  const [editableFields, setEditableFields] = useState({});
   const [updatedFields, setUpdatedFields] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
   const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '' });
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState('');
   const [passwordColor, setPasswordColor] = useState('red');
   const [profileImage, setProfileImage] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -43,6 +44,8 @@ export default function Profile() {
           setUserData(response.data);
           const profileNumber = response.data.profileImage;
           setProfileImage(profileNumber);
+          // setIsPhoneVerified(response.data.isPhoneVerified);
+          setIsPhoneVerified(true);
         }
       } catch (error) {
         Alert.alert('Erro', 'Não foi possível carregar os dados do perfil.');
@@ -51,30 +54,25 @@ export default function Profile() {
     loadUserData();
   }, []);
 
-  const handleSave = async (field) => {
-    if (!updatedFields[field]) {
-      setEditableFields({ ...editableFields, [field]: false });
-      return;
-    }
-
-    const token = await AsyncStorage.getItem('token');
-    if (!token) return Alert.alert('Erro', 'Usuário não autenticado.');
-
-    try {
-      const response = await axios.put(
-        `${API_BASE_URL}/updateUser`,
-        { [field]: updatedFields[field] },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.status === 200) {
+  const handleEditSave = async () => {
+    if (isEditing) {  
+      const token = await AsyncStorage.getItem('token');
+      try {
+        await axios.put(`${API_BASE_URL}/updateUser`, updatedFields, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         Alert.alert('Sucesso!', 'Dados atualizados com sucesso!');
-        setEditableFields({ ...editableFields, [field]: false });
-        setUpdatedFields({ ...updatedFields, [field]: undefined });
+        setIsEditing(false);
+      } catch (error) {
+        Alert.alert('Erro', 'Falha ao atualizar dados.');
       }
-    } catch (error) {
-      setErrorMessage(error.response?.data?.message || 'Erro ao atualizar.');
+    } else {
+      setIsEditing(true);
     }
+  };
+  
+  const toggleEdit = () => {
+    setIsEditing(!isEditing);
   };
 
   const handleChangePassword = async () => {
@@ -126,15 +124,6 @@ export default function Profile() {
     }
   };
 
-  const handleEdit = (field) => {
-    setEditableFields({ ...editableFields, [field]: !editableFields[field] });
-  };
-
-  const handleChange = (field, value) => {
-    setUserData({ ...userData, [field]: value });
-    setUpdatedFields({ ...updatedFields, [field]: value });
-  };
-
   const handleLogout = async () => {
     await AsyncStorage.removeItem('token');
     await AsyncStorage.removeItem('userId');
@@ -164,10 +153,7 @@ export default function Profile() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Animatable.View animation="fadeInDown" style={styles.profileContainer}>
-        <Image
-          source={getProfileImageUrl(profileImage)}
-          style={styles.profileImage}
-        />
+        <Image source={getProfileImageUrl(userData.profileImage)} style={styles.profileImage} />
         <Text style={styles.username}>{userData.name || 'Usuário'}</Text>
       </Animatable.View>
 
@@ -177,26 +163,46 @@ export default function Profile() {
             <TextInput
               style={styles.input}
               value={field === 'phone_number' ? formatPhoneNumber(userData[field]) : userData[field]}
-              onChangeText={(text) => handleChange(field, text)}
-              editable={editableFields[field] || false}
+              editable={isEditing}
               placeholder={field.replace('_', ' ')}
+              onChangeText={(text) => {
+                setUserData((prev) => ({ ...prev, [field]: text }));
+                setUpdatedFields((prev) => ({ ...prev, [field]: text }));
+              }}
             />
-            <TouchableOpacity onPress={() => editableFields[field] ? handleEdit(field) : handleEdit(field)}>
-              <MaterialIcons name={editableFields[field] ? 'check' : 'edit'} size={24} color={editableFields[field] ? 'green' : 'black'} />
-            </TouchableOpacity>
+            {/* Ícone ao lado do campo de telefone */}
+            {field === 'phone_number' && (
+              <Icon 
+                name={isPhoneVerified ? 'checkmark-circle' : 'alert-circle'} 
+                size={24} 
+                color={isPhoneVerified ? 'green' : 'red'} 
+                style={styles.icon} 
+              />
+            )}
           </View>
         ))}
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
-            <Text style={styles.buttonText}>Mudar Senha</Text>
-          </TouchableOpacity>
           <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
             <Text style={styles.buttonText}>Logout</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
+            <Text style={styles.buttonText}>Mudar Senha</Text>
+          </TouchableOpacity>
+          <View style={{ backgroundColor: 'green', borderRadius: 8 }}>
+            <TouchableOpacity onPress={toggleEdit} style={{ padding: 10 }}>
+              <Icon name={isEditing ? 'save' : 'pencil'} size={24} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
+        <View style={styles.separator} />
+      
+        <TouchableOpacity onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")} style={styles.deactivateButton}>
+          <Text style={styles.buttonText}>Desativar Conta</Text>
+        </TouchableOpacity>
       </Animatable.View>
 
+      {/* Modal para mudar senha */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
@@ -210,11 +216,7 @@ export default function Profile() {
                 style={styles.passwordInput} 
               />
               <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
-                <Ionicons
-                  name={isPasswordVisible ? 'eye-off' : 'eye'} 
-                  size={24}
-                  color="#a1a1a1"
-                />
+                <Icon name={isPasswordVisible ? 'eye-off' : 'eye'} size={24} color="#a1a1a1" />
               </TouchableOpacity>
             </View>
             <View style={styles.passwordContainer}>
@@ -230,7 +232,7 @@ export default function Profile() {
               />
             </View>
             <Text style={{ color: passwordColor, fontSize: 12, marginTop: 4 }}>{passwordMessage}</Text>
-            <TouchableOpacity onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")}>
+            <TouchableOpacity onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")}> 
               <Text>Esqueceu a senha?</Text>
             </TouchableOpacity>
             <View style={styles.modalButtonsContainer}>
@@ -249,6 +251,22 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
+  separator: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#ccc',
+    marginVertical: 20,
+  },
+  deactivateButton: {
+    backgroundColor: 'red',
+    padding: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    width: '100%',
+  },  
+  icon: {
+    marginLeft: 10,
+  },
   container: {
     flex: 1,
     backgroundColor: '#38a69d',
@@ -299,7 +317,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: 5,
     width: '80%'
   },
   deactivateButton: {
@@ -428,9 +446,5 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     backgroundColor: 'red',
-  },
-  buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
+  }
 });
