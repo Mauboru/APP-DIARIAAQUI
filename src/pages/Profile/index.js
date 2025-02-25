@@ -32,6 +32,8 @@ export default function Profile() {
   const [profileImage, setProfileImage] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const navigation = useNavigation();
+  const [errorMessage, setErrorMessage] = useState('');
+  const [phoneMessage, setPhoneMessage] = useState(null);
 
   useEffect(() => {
     async function loadUserData() {
@@ -44,8 +46,7 @@ export default function Profile() {
           setUserData(response.data);
           const profileNumber = response.data.profileImage;
           setProfileImage(profileNumber);
-          // setIsPhoneVerified(response.data.isPhoneVerified);
-          setIsPhoneVerified(true);
+          setIsPhoneVerified(response.data.verified_phone);
         }
       } catch (error) {
         Alert.alert('Erro', 'Não foi possível carregar os dados do perfil.');
@@ -57,22 +58,24 @@ export default function Profile() {
   const handleEditSave = async () => {
     if (isEditing) {  
       const token = await AsyncStorage.getItem('token');
+      if (!token) return Alert.alert('Erro', 'Usuário não autenticado.');
+  
       try {
-        await axios.put(`${API_BASE_URL}/updateUser`, updatedFields, {
+        const dataToUpdate = Object.keys(updatedFields).length > 0 ? updatedFields : userData;
+        await axios.put(`${API_BASE_URL}/updateUser`, dataToUpdate, {
           headers: { Authorization: `Bearer ${token}` },
         });
+  
         Alert.alert('Sucesso!', 'Dados atualizados com sucesso!');
+        setErrorMessage('');
         setIsEditing(false);
+        setUpdatedFields({});
       } catch (error) {
-        Alert.alert('Erro', 'Falha ao atualizar dados.');
+        setErrorMessage(error.response.data.message);
       }
     } else {
       setIsEditing(true);
     }
-  };
-  
-  const toggleEdit = () => {
-    setIsEditing(!isEditing);
   };
 
   const handleChangePassword = async () => {
@@ -161,15 +164,22 @@ export default function Profile() {
         {['name', 'email', 'phone_number', 'cpforCnpj'].map((field) => (
           <View key={field} style={styles.inputContainer}>
             <TextInput
-              style={styles.input}
+              style={!isEditing? styles.inputDisabled : styles.inputEnabled}
               value={field === 'phone_number' ? formatPhoneNumber(userData[field]) : userData[field]}
               editable={isEditing}
               placeholder={field.replace('_', ' ')}
               onChangeText={(text) => {
-                setUserData((prev) => ({ ...prev, [field]: text }));
-                setUpdatedFields((prev) => ({ ...prev, [field]: text }));
+                const formattedText = field === 'cpforCnpj' ? text.replace(/\D/g, '') : text;
+                setUserData((prev) => ({ ...prev, [field]: formattedText }));
+                setUpdatedFields((prev) => ({ ...prev, [field]: formattedText }));
               }}
             />
+
+            {field === 'phone_number' && phoneMessage && (
+              <View style={styles.phoneMessage}>
+                <Text style={styles.phoneMessageText}>{phoneMessage}</Text>
+              </View>
+            )}
             {/* Ícone ao lado do campo de telefone */}
             {field === 'phone_number' && (
               <Icon 
@@ -177,6 +187,14 @@ export default function Profile() {
                 size={24} 
                 color={isPhoneVerified ? 'green' : 'red'} 
                 style={styles.icon} 
+                onPress={() => {
+                  if (isPhoneVerified) {
+                    setPhoneMessage('Número verificado ✔');
+                    setTimeout(() => setPhoneMessage(null), 3000);
+                  } else {
+                    navigation.navigate('PhoneVerification');
+                  }
+                }} 
               />
             )}
           </View>
@@ -190,12 +208,15 @@ export default function Profile() {
             <Text style={styles.buttonText}>Mudar Senha</Text>
           </TouchableOpacity>
           <View style={{ backgroundColor: 'green', borderRadius: 8 }}>
-            <TouchableOpacity onPress={toggleEdit} style={{ padding: 10 }}>
+            <TouchableOpacity onPress={handleEditSave} style={{ padding: 10 }}>
               <Icon name={isEditing ? 'save' : 'pencil'} size={24} color="white" />
             </TouchableOpacity>
           </View>
         </View>
+
         <View style={styles.separator} />
+
+        {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
       
         <TouchableOpacity onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")} style={styles.deactivateButton}>
           <Text style={styles.buttonText}>Desativar Conta</Text>
@@ -251,83 +272,20 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    backgroundColor: '#2a7d76',
+    alignItems: 'center',
+  },
   separator: {
     width: '100%',
     height: 1,
     backgroundColor: '#ccc',
-    marginVertical: 20,
+    marginVertical: 40,
   },
   deactivateButton: {
     backgroundColor: 'red',
-    padding: 12,
-    borderRadius: 10,
-    alignItems: 'center',
-    width: '100%',
-  },  
-  icon: {
-    marginLeft: 10,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#38a69d',
-  },
-  containerHeader: {
-    marginTop: '14%',
-    marginBottom: '8%',
-    paddingStart: '5%',
-  },
-  message: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFF',
-  },
-  content: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
     padding: 15,
-    marginTop: 10,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 14,
-    marginTop: 10,
-    alignSelf: 'center',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 8,
-  },
-  input: {
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginTop: 10,
-    paddingHorizontal: 10,
-    width: '100%',
-    borderRadius: 8,
-    fontSize: 16,
-  },
-  inputDisabled: {
-    backgroundColor: '#f0f0f0',
-    color: '#888',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 5,
-    width: '80%'
-  },
-  deactivateButton: {
-    backgroundColor: 'red',
-    padding: 10,
-    borderRadius: 8,
-  },
-  changePasswordButton: {
-    backgroundColor: 'blue',
-    padding: 10,
     borderRadius: 8,
   },
   buttonText: {
@@ -338,7 +296,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
   },
   modalContainer: {
     width: '80%',
@@ -362,7 +320,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButton: {
-    backgroundColor: 'blue',
+    backgroundColor: 'green',
     padding: 10,
     borderRadius: 8,
     width: '45%',
@@ -387,14 +345,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignSelf: 'center',
   },
-  container: {
-    flexGrow: 1,
-    backgroundColor: '#38a69d',
-    alignItems: 'center',
-  },
   profileContainer: {
     alignItems: 'center',
-    marginTop: 50,
+    marginTop: 150,
     marginBottom: 20,
   },
   profileImage: {
@@ -425,7 +378,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 12,
   },
-  input: {
+  inputEnabled: {
+    color: 'black',
+    flex: 1,
+    height: 45,
+    fontSize: 16,
+  },
+  inputDisabled: {
+    color: 'grey',
     flex: 1,
     height: 45,
     fontSize: 16,
@@ -446,5 +406,24 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     backgroundColor: 'red',
-  }
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginBottom: 30,
+    alignSelf: 'center',
+  }, 
+  phoneMessage: {
+    position: 'absolute',
+    top: -30, 
+    backgroundColor: 'black',
+    padding: 5,
+    borderRadius: 5,
+    zIndex: 10,
+    elevation: 5,
+  },
+  phoneMessageText: {
+    color: 'white',
+    fontSize: 12,
+  },  
 });
