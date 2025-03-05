@@ -7,6 +7,7 @@ import API_BASE_URL from '../../config';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
 
+// isso deve virar um validator
 const formatPhoneNumber = (value) => {
   value = value.replace(/\D/g, '');
   if (value.length === 0) {
@@ -39,12 +40,12 @@ export default function Profile() {
     async function loadUserData() {
       const token = await AsyncStorage.getItem('token');
       try {
-        const response = await axios.get(`${API_BASE_URL}/users`, {
+        const response = await axios.get(`${API_BASE_URL}/users/get`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.data) {
           setUserData(response.data);
-          const profileNumber = response.data.profileImage;
+          const profileNumber = response.data.profile_image;
           setProfileImage(profileNumber);
           setIsPhoneVerified(response.data.verified_phone);
         }
@@ -156,12 +157,12 @@ export default function Profile() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Animatable.View animation="fadeInDown" style={styles.profileContainer}>
-        <Image source={getProfileImageUrl(userData.profileImage)} style={styles.profileImage} />
+        <Image source={getProfileImageUrl(userData.profile_image)} style={styles.profileImage} />
         <Text style={styles.username}>{userData.name || 'Usuário'}</Text>
       </Animatable.View>
 
       <Animatable.View animation="fadeInUp" style={styles.content}>
-        {['name', 'email', 'phone_number', 'cpforCnpj'].map((field) => (
+        {['name', 'email', 'phone_number', 'cpf_or_cnpj'].map((field) => (
           <View key={field} style={styles.inputContainer}>
             <TextInput
               style={!isEditing? styles.inputDisabled : styles.inputEnabled}

@@ -56,35 +56,45 @@ export default function SignUp() {
   };
 
   const handleRegister = async () => {
+    console.log("Dados enviados para a API:", { name, email, phoneNumber, cpforCnpj, password });
+  
+    if (!name || !email || !password || !phoneNumber || !cpforCnpj) {
+      setErrorMessage("Todos os campos são obrigatórios.");
+      return;
+    }
+  
     setIsLoading(true);
     try {
       const cleanedPhoneNumber = cleanPhoneNumber(phoneNumber);
-
+      console.log("Telefone formatado:", cleanedPhoneNumber);
+  
       await AsyncStorage.setItem('phoneNumber', cleanedPhoneNumber);
-
-      const response = await axios.post(`${API_BASE_URL}/registerUser`, {
-        cpforCnpj,
+  
+      const response = await axios.post(`${API_BASE_URL}/users/register`, {
+        cpf_or_cnpj: cpforCnpj,
         name,
         email,
         password,
         phone_number: cleanedPhoneNumber,
       });
-
+  
       if (response.status === 201) {
         Alert.alert('Sucesso', response.data.message);
-        navigation.navigate('PhoneVerification'); 
+        navigation.navigate('PhoneVerification');
       }
     } catch (error) {
-      console.error(error);
-      if (error.response && error.response.status === 400) {
+      console.error("Erro na requisição:", error);
+      if (error.response) {
+        console.log("Erro da API:", error.response.data);
         setErrorMessage(error.response.data.message);
       } else {
-        setErrorMessage('Erro ao tentar registrar. Tente novamente.');
+        setErrorMessage("Erro ao tentar registrar. Tente novamente.");
       }
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   const isButtonDisabled = !name.trim() || !email.trim() || !phoneNumber.trim() || !cpforCnpj.trim() || !password.trim() ;
 

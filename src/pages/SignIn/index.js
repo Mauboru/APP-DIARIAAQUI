@@ -22,8 +22,8 @@ export default function SignIn() {
     setErrorMessage('');
     
     try {
-      const response = await axios.post(`${API_BASE_URL}/login`, {
-        cpfOrCnpjOrName: cpfOrCnpjOrName,
+      const response = await axios.post(`${API_BASE_URL}/users/login`, {
+        cpf_or_cnpj_or_email: cpfOrCnpjOrName,
         password,
       });
 
@@ -42,11 +42,7 @@ export default function SignIn() {
       }
     } catch (error) {
       console.error(error);
-      if (error.response && error.response.status === 404) {
-        setErrorMessage('Email ou senha incorretos. Tente novamente.');
-      } else {
-        setErrorMessage('Erro ao tentar fazer login. Por favor, tente novamente.');
-      }
+      setErrorMessage(error.response.data.message);
     } finally {
       setIsLoading(false);
     }
