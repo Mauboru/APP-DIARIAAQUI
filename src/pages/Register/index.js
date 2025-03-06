@@ -66,7 +66,6 @@ export default function SignUp() {
     setIsLoading(true);
     try {
       const cleanedPhoneNumber = cleanPhoneNumber(phoneNumber);
-      console.log("Telefone formatado:", cleanedPhoneNumber);
   
       await AsyncStorage.setItem('phoneNumber', cleanedPhoneNumber);
   

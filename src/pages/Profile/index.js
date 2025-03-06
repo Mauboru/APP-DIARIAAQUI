@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet, Alert, Text, TouchableOpacity, Modal, ScrollView, Image } from 'react-native';
+import { View, TextInput, StyleSheet, Alert, Text, TouchableOpacity, Modal, ScrollView, Image, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -21,7 +21,14 @@ const formatPhoneNumber = (value) => {
   }
 };
 
+const cleanPhoneNumber = (value) => {
+  const cleanedValue = value.replace(/\D/g, '');
+  return `+55${cleanedValue}`;
+};
+
 export default function Profile() {
+  const [isLoading, setIsLoading] = useState(false); 
+  const [reloadData, setReloadData] = useState(false);
   const [userData, setUserData] = useState({ name: '', email: '', phone_number: '', cpforCnpj: '' });
   const [updatedFields, setUpdatedFields] = useState({});
   const [modalVisible, setModalVisible] = useState(false);
@@ -54,7 +61,7 @@ export default function Profile() {
       }
     }
     loadUserData();
-  }, []);
+  }, [reloadData]);
 
   const handleEditSave = async () => {
     if (isEditing) {  
@@ -62,8 +69,15 @@ export default function Profile() {
       if (!token) return Alert.alert('Erro', 'Usuário não autenticado.');
   
       try {
-        const dataToUpdate = Object.keys(updatedFields).length > 0 ? updatedFields : userData;
-        await axios.put(`${API_BASE_URL}/updateUser`, dataToUpdate, {
+        setIsLoading(true);
+        const cleanedPhoneNumber = cleanPhoneNumber(userData.phone_number);
+
+        const dataToUpdate = {
+          ...updatedFields,
+          phone_number: cleanedPhoneNumber, 
+        };
+
+        await axios.put(`${API_BASE_URL}/users/update`, dataToUpdate, {
           headers: { Authorization: `Bearer ${token}` },
         });
   
@@ -71,12 +85,16 @@ export default function Profile() {
         setErrorMessage('');
         setIsEditing(false);
         setUpdatedFields({});
+        setReloadData((prevState) => !prevState);
       } catch (error) {
         setErrorMessage(error.response.data.message);
+      } finally {
+        setIsLoading(false);
       }
     } else {
       setIsEditing(true);
     }
+    useEffect();
   };
 
   const handleChangePassword = async () => {
@@ -179,6 +197,11 @@ export default function Profile() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#FFF" />
+        </View>
+      )}
       <Animatable.View animation="fadeInDown" style={styles.profileContainer}>
         <Image source={getProfileImageUrl(userData.profile_image)} style={styles.profileImage} />
         <Text style={styles.username}>{userData.name || 'Usuário'}</Text>
@@ -250,11 +273,11 @@ export default function Profile() {
               [
                 {
                   text: 'Cancelar',
-                  style: 'cancel', // Esse botão cancela a ação
+                  style: 'cancel',
                 },
                 {
                   text: 'Desativar',
-                  style: 'destructive', // Esse botão confirma a ação
+                  style: 'destructive', 
                   onPress: handleDeactivate,
                 },
               ],
@@ -316,6 +339,17 @@ export default function Profile() {
 }
 
 const styles = StyleSheet.create({
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },  
   container: {
     flexGrow: 1,
     backgroundColor: '#2a7d76',
