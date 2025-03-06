@@ -79,7 +79,6 @@ export default function SignUp() {
       });
   
       if (response.status === 201) {
-        Alert.alert('Sucesso', response.data.message);
         navigation.navigate('PhoneVerification');
       }
     } catch (error) {
@@ -94,7 +93,6 @@ export default function SignUp() {
       setIsLoading(false);
     }
   };
-  
 
   const isButtonDisabled = !name.trim() || !email.trim() || !phoneNumber.trim() || !cpforCnpj.trim() || !password.trim() ;
 

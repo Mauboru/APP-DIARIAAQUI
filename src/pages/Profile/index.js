@@ -137,6 +137,29 @@ export default function Profile() {
     });
   };
 
+  const handleDeactivate = async () => {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) return Alert.alert('Erro', 'Usuário não autenticado.');
+
+    const userId = userData.id;
+
+    try {
+      await axios.patch(
+        `${API_BASE_URL}/users/deactivate/${userId}`,
+        {}, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      handleLogout();
+    } catch (error) {
+      setErrorMessage(error.response?.data?.message || 'Erro desconhecido');
+    }
+    
+  };
+
   const profileImages = {
     1: require('../../assets/profiles/image1.png'),
     2: require('../../assets/profiles/image2.png'),
@@ -219,7 +242,27 @@ export default function Profile() {
 
         {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
       
-        <TouchableOpacity onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")} style={styles.deactivateButton}>
+        <TouchableOpacity
+          onPress={() =>
+            Alert.alert(
+              'Confirmar Desativação',
+              'Tem certeza de que deseja desativar sua conta?',
+              [
+                {
+                  text: 'Cancelar',
+                  style: 'cancel', // Esse botão cancela a ação
+                },
+                {
+                  text: 'Desativar',
+                  style: 'destructive', // Esse botão confirma a ação
+                  onPress: handleDeactivate,
+                },
+              ],
+              { cancelable: false }
+            )
+          }
+          style={styles.deactivateButton}
+        >
           <Text style={styles.buttonText}>Desativar Conta</Text>
         </TouchableOpacity>
       </Animatable.View>
