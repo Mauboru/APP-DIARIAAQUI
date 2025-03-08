@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator, Modal } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Animatable from 'react-native-animatable';
 import axios from 'axios';
 import API_BASE_URL from '../../config';
+import DatePicker from 'react-native-modern-datepicker';
 
 export default function Servicos() {
   const navigation = useNavigation();
@@ -19,21 +20,66 @@ export default function Servicos() {
   const [dateFinal, setDateFinal] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [editable, setEditable] = useState(false);
+  const [showPickerInitial, setShowPickerInitial] = useState(false);
+  const [showPickerFinal, setShowPickerFinal] = useState(false);
+  const [date, setDate] = useState(false);
 
-  const formatDate = (text, setDate) => {
-    const cleaned = text.replace(/\D/g, '');
-    
-    let formatted = '';
-    if (cleaned.length <= 4) {
-      formatted = cleaned;
-    } else if (cleaned.length <= 6) {
-      formatted = `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
+  const [cep, setCep] = useState('');
+   const [rua, setRua] = useState('');
+   const [bairro, setBairro] = useState('');
+   const [cidade, setCidade] = useState('');
+   const [estado, setEstado] = useState('');
+   const [numero, setNumero] = useState('');
+   const [complemento, setComplemento] = useState('');
+ 
+   const fetchCepData = async (cep) => {
+     if (cep.length === 8) {
+       try {
+         const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
+         if (response.data.erro) {
+           setErrorMessage('CEP não encontrado.');
+         } else {
+           setRua(response.data.logradouro);
+           setBairro(response.data.bairro);
+           setCidade(response.data.localidade);
+           setEstado(response.data.uf);
+         }
+       } catch (error) {
+         setErrorMessage('Erro ao buscar dados do CEP.');
+       }
+     }
+   };
+ 
+   const handleCepChange = (value) => {
+     setCep(value);
+     if (value.length === 8) {
+       fetchCepData(value);
+     }
+   };
+
+  function handleOpenInitialPicker() {
+    setShowPickerInitial(true);
+  }
+  
+  function handleOpenFinalPicker() {
+    setShowPickerFinal(true);
+  }
+  
+  function handleClosePickers() {
+    setShowPickerInitial(false);
+    setShowPickerFinal(false);
+  }
+  
+  function handleChangeDate(propDate, isInitial = true) {
+    const [year, month, day] = propDate.split('/');
+    const formattedDate = `${day}/${month}/${year}`;
+    setDate(propDate);
+    if (isInitial) {
+      setDateInitial(formattedDate);
     } else {
-      formatted = `${cleaned.slice(0, 4)}-${cleaned.slice(4, 6)}-${cleaned.slice(6, 8)}`;
+      setDateFinal(formattedDate);
     }
-    
-    setDate(formatted);
-  };
+  }
 
   const handleRegister = async () => {
     setIsLoading(true);
@@ -46,10 +92,11 @@ export default function Servicos() {
         setIsLoading(false);
         return;
       }
+      const locationString = `${cep}, ${rua}, ${bairro}, ${cidade}, ${estado}, ${numero}, ${complemento}`;
 
       const response = await axios.post(
         `${API_BASE_URL}/services/register`,
-        { title, description, location, date_initial: dateInitial, date_final: dateFinal, pay, status },
+        { title, description, location: locationString, date_initial: dateInitial, date_final: dateFinal, pay, status },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -66,7 +113,7 @@ export default function Servicos() {
     }
   };
 
-  const isButtonDisabled = !title.trim() || !description.trim() || !location.trim() || !dateInitial.trim() || !dateFinal.trim() || !pay.trim();
+  const isButtonDisabled = !title.trim() || !description.trim() || !cep.trim() || !dateInitial.trim() || !dateFinal.trim() || !pay.trim();
 
   return (
     <ScrollView style={styles.container}>
@@ -99,33 +146,103 @@ export default function Servicos() {
           numberOfLines={4}  
         />
 
-        <Text style={styles.title}>Local do Serviço</Text>
-        <TextInput
-          value={location}
-          onChangeText={setLocation}
-          placeholder="Digite a localização"
-          style={styles.input}
-        />
+        <Text style={styles.title}>CEP</Text>
+         <TextInput
+           value={cep}
+           onChangeText={handleCepChange}
+           placeholder="Digite o CEP"
+           style={styles.input}
+           keyboardType="numeric"
+         />
+ 
+         <Text style={styles.title}>Rua</Text>
+         <TextInput
+           value={rua}
+           onChangeText={setRua}
+           placeholder="Rua"
+           style={styles.input}
+         />
+ 
+         <Text style={styles.title}>Bairro</Text>
+         <TextInput
+           value={bairro}
+           onChangeText={setBairro}
+           placeholder="Bairro"
+           style={styles.input}
+         />
+ 
+         <Text style={styles.title}>Cidade</Text>
+         <TextInput
+           value={cidade}
+           onChangeText={setCidade}
+           placeholder="Cidade"
+           style={styles.input}
+         />
+ 
+         <Text style={styles.title}>Estado</Text>
+         <TextInput
+           value={estado}
+           onChangeText={setEstado}
+           placeholder="Estado"
+           style={styles.input}
+         />
+ 
+         <Text style={styles.title}>Número</Text>
+         <TextInput
+           value={numero}
+           onChangeText={setNumero}
+           placeholder="Número"
+           style={styles.input}
+           keyboardType="numeric"
+         />
+ 
+         <Text style={styles.title}>Complemento</Text>
+         <TextInput
+           value={complemento}
+           onChangeText={setComplemento}
+           placeholder="Complemento"
+           style={styles.input}
+         />
         
         <Text style={styles.title}>Data Inicial</Text>
-        <TextInput
-          style={styles.dateInput}
-          keyboardType="numeric"
-          maxLength={10}
-          value={dateInitial}
-          onChangeText={(text) => formatDate(text, setDateInitial)}
-          placeholder="YYYY-MM-DD"
-        />
+        <TouchableOpacity onPress={handleOpenInitialPicker} style={styles.input}>
+           <Text>{dateInitial || "Selecione uma data"}</Text>
+         </TouchableOpacity>
+ 
+         <Modal animationType="slide" transparent={true} visible={showPickerInitial}>
+           <View style={styles.conteredView}>
+             <View style={styles.modalView}>
+               <DatePicker
+                 mode="calendar"
+                 selected={date}
+                 onDateChange={(date) => handleChangeDate(date, true)}
+               />
+               <TouchableOpacity onPress={handleClosePickers}>
+                 <Text>Fechar</Text>
+               </TouchableOpacity>
+             </View>
+           </View>
+         </Modal>
         
         <Text style={styles.title}>Data Final</Text>
-        <TextInput
-          style={styles.dateInput}
-          keyboardType="numeric"
-          maxLength={10}
-          value={dateFinal}
-          onChangeText={(text) => formatDate(text, setDateFinal)}
-          placeholder="YYYY-MM-DD"
-        />
+        <TouchableOpacity onPress={handleOpenFinalPicker} style={styles.input}>
+           <Text>{dateFinal || "Selecione uma data"}</Text>
+         </TouchableOpacity>
+ 
+         <Modal animationType="slide" transparent={true} visible={showPickerFinal}>
+           <View style={styles.conteredView}>
+             <View style={styles.modalView}>
+               <DatePicker
+                 mode="calendar"
+                 selected={date}
+                 onDateChange={(date) => handleChangeDate(date, false)}
+               />
+               <TouchableOpacity onPress={handleClosePickers}>
+                 <Text>Fechar</Text>
+               </TouchableOpacity>
+             </View>
+           </View>
+         </Modal>
         
         <Text style={styles.title}>Pagamento</Text>
         <TextInput
@@ -160,6 +277,28 @@ export default function Servicos() {
 };
 
 const styles = StyleSheet.create({
+  conteredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    width: '90%',
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: .25,
+    shadowRadius: 4,
+    elevation: 5
+  },
   title: {
     fontSize: 16,
     fontWeight: 'bold',
