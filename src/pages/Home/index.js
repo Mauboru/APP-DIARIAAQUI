@@ -18,7 +18,7 @@ export default function Home() {
     setIsLoading(true);
     const fetchServices = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/getService`);
+        const response = await axios.get(`${API_BASE_URL}/services/get`);
 
         if (response.data && response.data.services && Array.isArray(response.data.services)) {
           setServices(response.data.services); 
@@ -135,6 +135,17 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  }, 
   container: {
     flex: 1,
     backgroundColor: '#38a69d',

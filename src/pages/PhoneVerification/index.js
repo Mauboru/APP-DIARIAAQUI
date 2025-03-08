@@ -15,11 +15,27 @@ export default function PhoneVerification() {
   const inputs = useRef([]);
 
   useEffect(() => {
+    const sendInitialCode = async () => {
+      setIsLoading(true);
+      try {
+        await resendCodeApi(); 
+      } catch (error) {
+        console.error("Erro ao enviar código inicial:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    sendInitialCode(); 
+  }, []);
+  
+  useEffect(() => {
     if (timer > 0) {
       const interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
       return () => clearInterval(interval);
     }
   }, [timer]);
+  
 
   const handleRegister = async () => {
     const storedPhoneNumber = await AsyncStorage.getItem('phoneNumber');
@@ -32,14 +48,18 @@ export default function PhoneVerification() {
 
     setIsLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/verificationUserPhoneCode`, {
+      const response = await axios.post(`${API_BASE_URL}/users/verificationUserPhoneCode`, {
         code: codeString,
         phone_number: storedPhoneNumber,
       });
 
       if (response.status === 201) {
-        Alert.alert('Sucesso', response.data.message);
-        navigation.navigate('SignIn');
+        const currentIndex = navigation.getState().index;
+        const previousRoute = currentIndex > 0
+          ? navigation.getState().routes[currentIndex - 1].name
+          : null;
+        if (previousRoute == "Profile") navigation.navigate('Profile'); 
+        else navigation.navigate('SignIn');
       }
     } catch (error) {
       console.error(error);
@@ -66,7 +86,7 @@ export default function PhoneVerification() {
   };
 
   const resendCode = () => {
-    setTimer(1);
+    setTimer(30);
     setErrorMessage('');
     resendCodeApi();
   };
@@ -76,7 +96,7 @@ export default function PhoneVerification() {
     try {
       const storedPhoneNumber = await AsyncStorage.getItem('phoneNumber');
 
-      const response = await axios.post(`${API_BASE_URL}/sendVerificationCodeAPI`, {
+      const response = await axios.post(`${API_BASE_URL}/users/resendVerificationCodeService`, {
         phone_number: storedPhoneNumber
       });
 

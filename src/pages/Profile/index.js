@@ -107,7 +107,7 @@ export default function Profile() {
 
     try {
       const response = await axios.put(
-        `${API_BASE_URL}/updatePassword`,
+        `${API_BASE_URL}/users/updatePassword`,
         {
           old_password: passwords.oldPassword,
           new_password: passwords.newPassword,

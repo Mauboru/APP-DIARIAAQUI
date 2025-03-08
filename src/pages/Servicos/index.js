@@ -48,7 +48,7 @@ export default function Servicos() {
       }
 
       const response = await axios.post(
-        `${API_BASE_URL}/registerService`,
+        `${API_BASE_URL}/services/register`,
         { title, description, location, date_initial: dateInitial, date_final: dateFinal, pay, status },
         { headers: { Authorization: `Bearer ${token}` } }
       );
