@@ -1,7 +1,7 @@
-export { default as Home } from './Home';
+export { default as ServicesList } from './ServicesList';
 export { default as Profile } from './Profile';
 export { default as SignIn } from './SignIn';
 export { default as Welcome } from './Welcome';
 export { default as Register } from './Register';
-export { default as Servicos } from './Servicos';
+export { default as ServicesRegister } from './ServicesRegister';
 export { default as PhoneVerification } from './PhoneVerification';

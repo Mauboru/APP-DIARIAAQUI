@@ -7,7 +7,7 @@ import axios from 'axios';
 import API_BASE_URL from '../../config';
 import DatePicker from 'react-native-modern-datepicker';
 
-export default function Servicos() {
+export default function ServicesRegister() {
   const navigation = useNavigation();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -101,7 +101,7 @@ export default function Servicos() {
       );
 
       if (response.status === 201) {
-        navigation.navigate('Home');
+        navigation.navigate('ServicesList');
       }
     } catch (error) {
       console.error("Erro ao registrar serviço:", error);

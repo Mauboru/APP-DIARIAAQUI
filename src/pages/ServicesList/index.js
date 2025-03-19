@@ -7,30 +7,16 @@ import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import * as Animatable from 'react-native-animatable';
 
-export default function Home() {
+export default function ServicesList() {
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false); 
   const [filter, setFilter] = useState('all');
   const [userId, setUserId] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
   const navigation = useNavigation();
 
   useEffect(() => {
     setIsLoading(true);
-    const fetchServices = async () => {
-      try {
-        const response = await axios.get(`${API_BASE_URL}/services/get`);
-
-        if (response.data && response.data.services && Array.isArray(response.data.services)) {
-          setServices(response.data.services); 
-        } else {
-          console.error('Dados de serviços inválidos.');
-        }
-      } catch (error) {
-        console.error('Erro ao buscar os serviços:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
     const fetchUserId = async () => {
       try {
@@ -43,31 +29,85 @@ export default function Home() {
       }
     };
     
-
     fetchUserId();
     fetchServices();
   }, []);
 
-  const filteredServices = filter === 'mine' ? services.filter(service => service.employer.id === userId) : services;
+  const fetchServices = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/services/get`);
+      if (response.data && response.data.services && Array.isArray(response.data.services)) {
+        setServices(response.data.services); 
+      } else {
+        console.error('Dados de serviços inválidos.');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar os serviços:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const renderCard = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.contractor}>Contratante: {item.employer.name}</Text>
-      <Text style={styles.description}>{item.description}</Text>
-      <View style={styles.locationContainer}>
-        <Icon name="location" size={20} color="red" /> 
-        <Text>{item.location}</Text>
-      </View>
-      <Text>{item.date_initial} - {item.date_final}</Text>
-      <Text style={styles.pay}>
-        Pagamento: <Text style={{ color: '#27ae60' }}>R${item.pay}</Text>
-      </Text>
-      <Text style={styles.status}>
-        Status: <Text style={{ color: item.status === 'open' ? '#27ae60' : '#e74c3c' }}>{item.status}</Text>
-      </Text>
-    </View>
-  );
+  const fetchServicesByUser = async () => {
+    setIsLoading(true);
+    try {
+      const token = AsyncStorage.getItem('token');
+      if (!token) {
+        console.error('Token não encontrado');
+        return;
+      }
+  
+      const response = await axios.get(`${API_BASE_URL}/services/getSubscriptionByUser`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (response.data && response.data.services && Array.isArray(response.data.services)) {
+        setServices(response.data.services);
+      } else {
+        console.error('Dados de serviços inválidos.');
+      }
+    } catch (error) {
+      console.error('Erro ao buscar os serviços:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const subscribeService = async (service_id) => {
+    setIsLoading(true);
+
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        setErrorMessage('Usuário não autenticado.');
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await axios.post(
+        `${API_BASE_URL}/services/subscribe`,
+        { service_id, message: 'standard' },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.status === 201) {
+        await fetchServices();
+        setErrorMessage('');
+      }
+    } catch (error) {
+      console.error("Erro ao se inscrever no serviço:", error);
+      setErrorMessage(
+        error.response?.data?.message || 'Erro ao tentar se inscrever. Tente novamente.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const filteredServices = filter === 'mine' ? services.filter(service => service.employer.id === userId) : services;
 
   return (
     <View style={styles.container}>
@@ -86,21 +126,23 @@ export default function Home() {
           style={[styles.filterButton, filter === 'all' && styles.activeButton]}
           onPress={() => setFilter('all')}
         >
-          <Text style={styles.filterText}>Todos</Text>
+        <Text style={styles.filterText}>Todos</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.filterButton, filter === 'mine' && styles.activeButton]}
           onPress={() => setFilter('mine')}
         >
-          <Text style={styles.filterText}>Meus</Text>
+        <Text style={styles.filterText}>Meus</Text>
         </TouchableOpacity>
       </View>
+
+      {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
   
       <Animatable.View animation="fadeInUp" style={styles.cardContainer}>
         {filter === 'mine' && filteredServices.length === 0 ? (
           <View style={styles.messageContainer}>
             <Text style={styles.messageText}>Você não possui serviços cadastrados.</Text>
-            <TouchableOpacity style={styles.registerButton} onPress={() => navigation.navigate('Servicos')}>
+            <TouchableOpacity style={styles.registerButton} onPress={() => navigation.navigate('ServicesRegister')}>
               <Text style={styles.registerButtonText}>Publicar Serviço</Text>
             </TouchableOpacity>
           </View>
@@ -123,6 +165,11 @@ export default function Home() {
                 <Text style={styles.status}>
                   Status: <Text style={{ color: item.status === 'open' ? '#27ae60' : '#e74c3c' }}>{item.status}</Text>
                 </Text>
+
+                {/* Botão de inscrição */}
+                <TouchableOpacity style={styles.subscribeButton} onPress={() => subscribeService(item.id)}>
+                  <Text style={styles.subscribeButtonText}>Me Inscrever</Text>
+                </TouchableOpacity>
               </View>
             )}
             keyExtractor={(item) => item.id.toString()}
@@ -223,4 +270,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 5,
   },
+  subscribeButton: {
+    marginTop: 10,
+    backgroundColor: '#27ae60',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  subscribeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginTop: 10,
+    alignSelf: 'center',
+  }, 
 });

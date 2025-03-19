@@ -9,19 +9,19 @@ export default function Footer({ setSelected }) {
 
   return (
     <View style={[styles.container, { backgroundColor: '#38a69d' }]}>
-      {/* Servicos */}
+      {/* ServicesRegister */}
       <TouchableOpacity 
         style={[styles.button, { opacity: selected === 0 ? 1 : 0.5 }]} 
-        onPress={() => navigation.navigate('Servicos')}
+        onPress={() => navigation.navigate('ServicesRegister')}
       >
         <Icon name={selected === 1 ? 'rocket' : 'rocket-outline'} size={24} color={'#212121'} />
         <Text style={[styles.label, {  color: '#212121' }]}>Serviços</Text>
       </TouchableOpacity>
 
-      {/* Home */}
+      {/* ServicesList */}
       <TouchableOpacity 
         style={[styles.button, { opacity: selected === 1 ? 1 : 0.5 }]} 
-        onPress={() => navigation.navigate('Home')}
+        onPress={() => navigation.navigate('ServicesList')}
       >
         <Icon name={selected === 0 ? 'home' : 'home-outline'} size={24} color={'#212121'} />
         <Text style={[styles.label, { color: '#212121' }]}>Início</Text>

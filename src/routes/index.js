@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
-import { Welcome, SignIn, Home, Profile, Register, Servicos, PhoneVerification } from '../pages';
+import { Welcome, SignIn, ServicesList, Profile, Register, ServicesRegister, PhoneVerification } from '../pages';
 import PrivateRoute from './PrivateRoute';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -12,7 +12,7 @@ export default function Routes() {
   useEffect(() => {
     const checkUserAuth = async () => {
       const token = await AsyncStorage.getItem('token');
-      setInitialRoute(token ? 'Home' : 'Welcome');
+      setInitialRoute(token ? 'ServicesList' : 'Welcome');
       setIsLoading(false);
     };
     checkUserAuth();
@@ -25,10 +25,10 @@ export default function Routes() {
       <Stack.Screen name="Register" component={Register} />
       <Stack.Screen name="PhoneVerification" component={PhoneVerification} />
 
-      <Stack.Screen name="Home">
+      <Stack.Screen name="ServicesList">
         {(props) => (
           <PrivateRoute navigation={props.navigation}>
-            <Home {...props} />
+            <ServicesList  {...props} />
           </PrivateRoute>
         )}
       </Stack.Screen>
@@ -39,10 +39,10 @@ export default function Routes() {
           </PrivateRoute>
         )}
       </Stack.Screen>
-      <Stack.Screen name="Servicos">
+      <Stack.Screen name="ServicesRegister">
         {(props) => (
           <PrivateRoute navigation={props.navigation}>
-            <Servicos {...props} />
+            <ServicesRegister {...props} />
           </PrivateRoute>
         )}
       </Stack.Screen>
