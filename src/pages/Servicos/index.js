@@ -214,7 +214,7 @@ export default function Servicos() {
              <View style={styles.modalView}>
                <DatePicker
                  mode="calendar"
-                 selected={date}
+                 selected={date || new Date().toISOString().split('T')[0]}
                  onDateChange={(date) => handleChangeDate(date, true)}
                />
                <TouchableOpacity onPress={handleClosePickers}>
@@ -233,9 +233,9 @@ export default function Servicos() {
            <View style={styles.conteredView}>
              <View style={styles.modalView}>
                <DatePicker
-                 mode="calendar"
-                 selected={date}
-                 onDateChange={(date) => handleChangeDate(date, false)}
+                  mode="calendar"
+                  selected={date || new Date().toISOString().split('T')[0]}
+                  onDateChange={(date) => handleChangeDate(date, false)}
                />
                <TouchableOpacity onPress={handleClosePickers}>
                  <Text>Fechar</Text>

@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
-import { Welcome, SignIn, Home, Profile, Register, QrCode, Servicos, PhoneVerification } from '../pages';
+import { Welcome, SignIn, Home, Profile, Register, Servicos, PhoneVerification } from '../pages';
 import PrivateRoute from './PrivateRoute';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -36,13 +36,6 @@ export default function Routes() {
         {(props) => (
           <PrivateRoute navigation={props.navigation}>
             <Profile {...props} />
-          </PrivateRoute>
-        )}
-      </Stack.Screen>
-      <Stack.Screen name="QrCode">
-        {(props) => (
-          <PrivateRoute navigation={props.navigation}>
-            <QrCode {...props} />
           </PrivateRoute>
         )}
       </Stack.Screen>
