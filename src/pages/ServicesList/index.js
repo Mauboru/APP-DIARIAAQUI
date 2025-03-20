@@ -17,7 +17,7 @@ export default function ServicesList() {
 
   useEffect(() => {
     setIsLoading(true);
-
+  
     const fetchUserId = async () => {
       try {
         const storedUserId = await AsyncStorage.getItem('userId');
@@ -28,37 +28,48 @@ export default function ServicesList() {
         console.error('Erro ao recuperar userId:', error);
       }
     };
-    
+  
     fetchUserId();
-    fetchServices();
+    fetchServicesUnsubscribed();
   }, []);
 
-  const fetchServices = async () => {
+  const fetchServicesSubscribed = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/services/get`);
-      if (response.data && response.data.services && Array.isArray(response.data.services)) {
-        setServices(response.data.services); 
-      } else {
-        console.error('Dados de serviços inválidos.');
-      }
-    } catch (error) {
-      console.error('Erro ao buscar os serviços:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+            setErrorMessage('Usuário não autenticado.');
+            setIsLoading(false);
+            return;
+        }
 
-  const fetchServicesByUser = async () => {
+        const response = await axios.get(`${API_BASE_URL}/services/getSubscribedService`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (response.data && response.data.services && Array.isArray(response.data.services)) {
+            setServices(response.data.services);
+        } else {
+            console.error('Dados de serviços inválidos.', response.data);
+        }
+    } catch (error) {
+        console.error('Erro ao buscar os serviços:', error);
+    } finally {
+        setIsLoading(false);
+    }
+};
+
+  const fetchServicesUnsubscribed = async () => {
     setIsLoading(true);
     try {
-      const token = AsyncStorage.getItem('token');
+      const token = await AsyncStorage.getItem('token');
       if (!token) {
-        console.error('Token não encontrado');
+        setErrorMessage('Usuário não autenticado.');
+        setIsLoading(false);
         return;
       }
   
-      const response = await axios.get(`${API_BASE_URL}/services/getSubscriptionByUser`, {
+      const response = await axios.get(`${API_BASE_URL}/services/getUnsubscribedService`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -67,7 +78,7 @@ export default function ServicesList() {
       if (response.data && response.data.services && Array.isArray(response.data.services)) {
         setServices(response.data.services);
       } else {
-        console.error('Dados de serviços inválidos.');
+        console.error('Dados de serviços inválidos.', response.data);
       }
     } catch (error) {
       console.error('Erro ao buscar os serviços:', error);
@@ -94,7 +105,7 @@ export default function ServicesList() {
       );
 
       if (response.status === 201) {
-        await fetchServices();
+        await fetchServicesUnsubscribed();
         setErrorMessage('');
       }
     } catch (error) {
@@ -107,7 +118,35 @@ export default function ServicesList() {
     }
   }
 
-  const filteredServices = filter === 'mine' ? services.filter(service => service.employer.id === userId) : services;
+  const unsubscribeService = async (service_id) => {
+    setIsLoading(true);
+
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        setErrorMessage('Usuário não autenticado.');
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await axios.post(
+        `${API_BASE_URL}/services/unsubscribe/${service_id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.status === 201) {
+        await fetchServicesSubscribed();
+        setErrorMessage('');
+      }
+    } catch (error) {
+      console.error("Erro ao se desinscrever do serviço:", error);
+      setErrorMessage(
+        error.response?.data?.message || 'Erro ao tentar desinscrever. Tente novamente.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -126,7 +165,13 @@ export default function ServicesList() {
           style={[styles.filterButton, filter === 'all' && styles.activeButton]}
           onPress={() => setFilter('all')}
         >
-        <Text style={styles.filterText}>Todos</Text>
+        <Text style={styles.filterText}>Novos</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.filterButton, filter === 'subscriptions' && styles.activeButton]}
+          onPress={() => setFilter('subscriptions')}
+        >
+        <Text style={styles.filterText}>Inscrições</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.filterButton, filter === 'mine' && styles.activeButton]}
@@ -137,18 +182,22 @@ export default function ServicesList() {
       </View>
 
       {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
-  
+
       <Animatable.View animation="fadeInUp" style={styles.cardContainer}>
-        {filter === 'mine' && filteredServices.length === 0 ? (
+        {filter === 'mine' && services.length === 0 ? (
           <View style={styles.messageContainer}>
             <Text style={styles.messageText}>Você não possui serviços cadastrados.</Text>
             <TouchableOpacity style={styles.registerButton} onPress={() => navigation.navigate('ServicesRegister')}>
               <Text style={styles.registerButtonText}>Publicar Serviço</Text>
             </TouchableOpacity>
           </View>
+        ) : services.length === 0 ? (
+          <View style={styles.noRecordsContainer}>
+            <Text style={styles.noRecordsText}>Nenhum serviço disponível.</Text>
+          </View>
         ) : (
           <FlatList
-            data={filteredServices}
+            data={services}
             renderItem={({ item }) => (
               <View style={styles.card}>
                 <Text style={styles.title}>{item.title}</Text>
@@ -166,10 +215,16 @@ export default function ServicesList() {
                   Status: <Text style={{ color: item.status === 'open' ? '#27ae60' : '#e74c3c' }}>{item.status}</Text>
                 </Text>
 
-                {/* Botão de inscrição */}
-                <TouchableOpacity style={styles.subscribeButton} onPress={() => subscribeService(item.id)}>
-                  <Text style={styles.subscribeButtonText}>Me Inscrever</Text>
-                </TouchableOpacity>
+                {/* Botão de inscrição ou desinscrição */}
+                {filter === 'subscriptions' ? (
+                  <TouchableOpacity style={styles.unsubscribeButton} onPress={() => unsubscribeService(item.id)}>
+                    <Text style={styles.subscribeButtonText}>Cancelar Inscrição</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity style={styles.subscribeButton} onPress={() => subscribeService(item.id)}>
+                    <Text style={styles.subscribeButtonText}>Me Inscrever</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             )}
             keyExtractor={(item) => item.id.toString()}
@@ -277,6 +332,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+  unsubscribeButton: {
+    marginTop: 10,
+    backgroundColor: 'tomato',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
   subscribeButtonText: {
     color: '#fff',
     fontSize: 16,
@@ -288,4 +350,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
     alignSelf: 'center',
   }, 
+  noRecordsContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  noRecordsText: {
+    fontSize: 18,
+    color: '#555',
+    fontWeight: 'bold',
+  },
 });
