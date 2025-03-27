@@ -6,6 +6,7 @@ import * as Animatable from 'react-native-animatable';
 import axios from 'axios';
 import API_BASE_URL from '../../config';
 import DatePicker from 'react-native-modern-datepicker';
+import Footer from '../../components/Footer';
 
 export default function ServicesRegister() {
   const navigation = useNavigation();
@@ -116,163 +117,166 @@ export default function ServicesRegister() {
   const isButtonDisabled = !title.trim() || !description.trim() || !cep.trim() || !dateInitial.trim() || !dateFinal.trim() || !pay.trim();
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={{ flex: 1 }}>
       {isLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#FFF" />
         </View>
       )}
       
-      <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
-        <Text style={styles.message}>Publique seu Serviço</Text>
-      </Animatable.View>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={styles.container}>
+        <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
+          <Text style={styles.message}>Publique seu Serviço</Text>
+        </Animatable.View>
 
-      <Animatable.View animation="fadeInUp" style={styles.containerForm}>
-        <Text style={styles.title}>Título do Serviço</Text>
-        <TextInput
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Digite seu título"
-          style={styles.input}
-        />
-        
-        <Text style={styles.title}>Descreva o Serviço</Text>
-        <TextInput
-          value={description}
-          onChangeText={setDescription}
-          placeholder="Digite sua descrição"
-          style={[styles.input, { height: 120, textAlignVertical: 'top' }]}
-          multiline={true}
-          numberOfLines={4}  
-        />
+        <Animatable.View animation="fadeInUp" style={styles.containerForm}>
+          <Text style={styles.title}>Título do Serviço</Text>
+          <TextInput
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Digite seu título"
+            style={styles.input}
+          />
+          
+          <Text style={styles.title}>Descreva o Serviço</Text>
+          <TextInput
+            value={description}
+            onChangeText={setDescription}
+            placeholder="Digite sua descrição"
+            style={[styles.input, { height: 120, textAlignVertical: 'top' }]}
+            multiline={true}
+            numberOfLines={4}  
+          />
 
-        <Text style={styles.title}>CEP</Text>
-         <TextInput
-           value={cep}
-           onChangeText={handleCepChange}
-           placeholder="Digite o CEP"
-           style={styles.input}
-           keyboardType="numeric"
-         />
- 
-         <Text style={styles.title}>Rua</Text>
-         <TextInput
-           value={rua}
-           onChangeText={setRua}
-           placeholder="Rua"
-           style={styles.input}
-         />
- 
-         <Text style={styles.title}>Bairro</Text>
-         <TextInput
-           value={bairro}
-           onChangeText={setBairro}
-           placeholder="Bairro"
-           style={styles.input}
-         />
- 
-         <Text style={styles.title}>Cidade</Text>
-         <TextInput
-           value={cidade}
-           onChangeText={setCidade}
-           placeholder="Cidade"
-           style={styles.input}
-         />
- 
-         <Text style={styles.title}>Estado</Text>
-         <TextInput
-           value={estado}
-           onChangeText={setEstado}
-           placeholder="Estado"
-           style={styles.input}
-         />
- 
-         <Text style={styles.title}>Número</Text>
-         <TextInput
-           value={numero}
-           onChangeText={setNumero}
-           placeholder="Número"
-           style={styles.input}
-           keyboardType="numeric"
-         />
- 
-         <Text style={styles.title}>Complemento</Text>
-         <TextInput
-           value={complemento}
-           onChangeText={setComplemento}
-           placeholder="Complemento"
-           style={styles.input}
-         />
-        
-        <Text style={styles.title}>Data Inicial</Text>
-        <TouchableOpacity onPress={handleOpenInitialPicker} style={styles.input}>
-           <Text>{dateInitial || "Selecione uma data"}</Text>
-         </TouchableOpacity>
- 
-         <Modal animationType="slide" transparent={true} visible={showPickerInitial}>
-           <View style={styles.conteredView}>
-             <View style={styles.modalView}>
-               <DatePicker
-                 mode="calendar"
-                 selected={date || new Date().toISOString().split('T')[0]}
-                 onDateChange={(date) => handleChangeDate(date, true)}
-               />
-               <TouchableOpacity onPress={handleClosePickers}>
-                 <Text>Fechar</Text>
-               </TouchableOpacity>
-             </View>
-           </View>
-         </Modal>
-        
-        <Text style={styles.title}>Data Final</Text>
-        <TouchableOpacity onPress={handleOpenFinalPicker} style={styles.input}>
-           <Text>{dateFinal || "Selecione uma data"}</Text>
-         </TouchableOpacity>
- 
-         <Modal animationType="slide" transparent={true} visible={showPickerFinal}>
-           <View style={styles.conteredView}>
-             <View style={styles.modalView}>
-               <DatePicker
+          <Text style={styles.title}>CEP</Text>
+          <TextInput
+            value={cep}
+            onChangeText={handleCepChange}
+            placeholder="Digite o CEP"
+            style={styles.input}
+            keyboardType="numeric"
+          />
+  
+          <Text style={styles.title}>Rua</Text>
+          <TextInput
+            value={rua}
+            onChangeText={setRua}
+            placeholder="Rua"
+            style={styles.input}
+          />
+  
+          <Text style={styles.title}>Bairro</Text>
+          <TextInput
+            value={bairro}
+            onChangeText={setBairro}
+            placeholder="Bairro"
+            style={styles.input}
+          />
+  
+          <Text style={styles.title}>Cidade</Text>
+          <TextInput
+            value={cidade}
+            onChangeText={setCidade}
+            placeholder="Cidade"
+            style={styles.input}
+          />
+  
+          <Text style={styles.title}>Estado</Text>
+          <TextInput
+            value={estado}
+            onChangeText={setEstado}
+            placeholder="Estado"
+            style={styles.input}
+          />
+  
+          <Text style={styles.title}>Número</Text>
+          <TextInput
+            value={numero}
+            onChangeText={setNumero}
+            placeholder="Número"
+            style={styles.input}
+            keyboardType="numeric"
+          />
+  
+          <Text style={styles.title}>Complemento</Text>
+          <TextInput
+            value={complemento}
+            onChangeText={setComplemento}
+            placeholder="Complemento"
+            style={styles.input}
+          />
+          
+          <Text style={styles.title}>Data Inicial</Text>
+          <TouchableOpacity onPress={handleOpenInitialPicker} style={styles.input}>
+            <Text>{dateInitial || "Selecione uma data"}</Text>
+          </TouchableOpacity>
+  
+          <Modal animationType="slide" transparent={true} visible={showPickerInitial}>
+            <View style={styles.conteredView}>
+              <View style={styles.modalView}>
+                <DatePicker
                   mode="calendar"
                   selected={date || new Date().toISOString().split('T')[0]}
-                  onDateChange={(date) => handleChangeDate(date, false)}
-               />
-               <TouchableOpacity onPress={handleClosePickers}>
-                 <Text>Fechar</Text>
-               </TouchableOpacity>
-             </View>
-           </View>
-         </Modal>
-        
-        <Text style={styles.title}>Pagamento</Text>
-        <TextInput
-          value={pay}
-          onChangeText={setPay}
-          placeholder="R$ 0,00"
-          style={styles.input}
-          keyboardType="numeric"
-        />
+                  onDateChange={(date) => handleChangeDate(date, true)}
+                />
+                <TouchableOpacity onPress={handleClosePickers}>
+                  <Text>Fechar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+          
+          <Text style={styles.title}>Data Final</Text>
+          <TouchableOpacity onPress={handleOpenFinalPicker} style={styles.input}>
+            <Text>{dateFinal || "Selecione uma data"}</Text>
+          </TouchableOpacity>
+  
+          <Modal animationType="slide" transparent={true} visible={showPickerFinal}>
+            <View style={styles.conteredView}>
+              <View style={styles.modalView}>
+                <DatePicker
+                    mode="calendar"
+                    selected={date || new Date().toISOString().split('T')[0]}
+                    onDateChange={(date) => handleChangeDate(date, false)}
+                />
+                <TouchableOpacity onPress={handleClosePickers}>
+                  <Text>Fechar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+          
+          <Text style={styles.title}>Pagamento</Text>
+          <TextInput
+            value={pay}
+            onChangeText={setPay}
+            placeholder="R$ 0,00"
+            style={styles.input}
+            keyboardType="numeric"
+          />
 
-        <Text style={styles.title}>Status</Text>
-        <TextInput
-          editable={false}
-          value={status}
-          onChangeText={setStatus}
-          placeholder="Selecione o status"
-          style={[styles.input, !editable && { backgroundColor: '#a1a1a1', color: 'white' }]}
-        />
-        
-        {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
-        
-        <TouchableOpacity
-          style={[styles.button, isButtonDisabled && styles.buttonDisabled]}
-          onPress={handleRegister}
-          disabled={isButtonDisabled}
-        >
-          <Text style={styles.buttonText}>Criar Serviço</Text>
-        </TouchableOpacity>
-      </Animatable.View>
-    </ScrollView>
+          <Text style={styles.title}>Status</Text>
+          <TextInput
+            editable={false}
+            value={status}
+            onChangeText={setStatus}
+            placeholder="Selecione o status"
+            style={[styles.input, !editable && { backgroundColor: '#a1a1a1', color: 'white' }]}
+          />
+          
+          {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
+          
+          <TouchableOpacity
+            style={[styles.button, isButtonDisabled && styles.buttonDisabled]}
+            onPress={handleRegister}
+            disabled={isButtonDisabled}
+          >
+            <Text style={styles.buttonText}>Criar Serviço</Text>
+          </TouchableOpacity>
+        </Animatable.View>
+      </ScrollView>
+      <Footer />
+    </View>
   );
 };
 

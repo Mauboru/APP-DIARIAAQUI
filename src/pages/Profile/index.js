@@ -6,6 +6,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import API_BASE_URL from '../../config';
 import * as Animatable from 'react-native-animatable';
 import { useNavigation } from '@react-navigation/native';
+import Footer from '../../components/Footer';
 
 // isso deve virar um validator
 const formatPhoneNumber = (value) => {
@@ -47,7 +48,7 @@ export default function Profile() {
     async function loadUserData() {
       const token = await AsyncStorage.getItem('token');
       try {
-        const response = await axios.get(`${API_BASE_URL}/users/get`, {
+        const response = await axios.get(`${API_BASE_URL}/users/getAllUser`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (response.data) {
@@ -196,145 +197,149 @@ export default function Profile() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={{ flex: 1 }}>
       {isLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#FFF" />
         </View>
       )}
-      <Animatable.View animation="fadeInDown" style={styles.profileContainer}>
-        <Image source={getProfileImageUrl(userData.profile_image)} style={styles.profileImage} />
-        <Text style={styles.username}>{userData.name || 'Usuário'}</Text>
-      </Animatable.View>
-
-      <Animatable.View animation="fadeInUp" style={styles.content}>
-        {['name', 'email', 'phone_number', 'cpf_or_cnpj'].map((field) => (
-          <View key={field} style={styles.inputContainer}>
-            <TextInput
-              style={!isEditing? styles.inputDisabled : styles.inputEnabled}
-              value={field === 'phone_number' ? formatPhoneNumber(userData[field]) : userData[field]}
-              editable={isEditing}
-              placeholder={field.replace('_', ' ')}
-              onChangeText={(text) => {
-                const formattedText = field === 'cpforCnpj' ? text.replace(/\D/g, '') : text;
-                setUserData((prev) => ({ ...prev, [field]: formattedText }));
-                setUpdatedFields((prev) => ({ ...prev, [field]: formattedText }));
-              }}
-            />
-
-            {field === 'phone_number' && phoneMessage && (
-              <View style={styles.phoneMessage}>
-                <Text style={styles.phoneMessageText}>{phoneMessage}</Text>
-              </View>
-            )}
-            {/* Ícone ao lado do campo de telefone */}
-            {field === 'phone_number' && (
-              <Icon 
-                name={isPhoneVerified ? 'checkmark-circle' : 'alert-circle'} 
-                size={24} 
-                color={isPhoneVerified ? 'green' : 'red'} 
-                style={styles.icon} 
-                onPress={() => {
-                  if (isPhoneVerified) {
-                    setPhoneMessage('Número verificado ✔');
-                    setTimeout(() => setPhoneMessage(null), 3000);
-                  } else {
-                    navigation.navigate('PhoneVerification');
-                  }
-                }} 
-              />
-            )}
-          </View>
-        ))}
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
-            <Text style={styles.buttonText}>Logout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
-            <Text style={styles.buttonText}>Mudar Senha</Text>
-          </TouchableOpacity>
-          <View style={{ backgroundColor: 'green', borderRadius: 8 }}>
-            <TouchableOpacity onPress={handleEditSave} style={{ padding: 10 }}>
-              <Icon name={isEditing ? 'save' : 'pencil'} size={24} color="white" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.separator} />
-
-        {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
       
-        <TouchableOpacity
-          onPress={() =>
-            Alert.alert(
-              'Confirmar Desativação',
-              'Tem certeza de que deseja desativar sua conta?',
-              [
-                {
-                  text: 'Cancelar',
-                  style: 'cancel',
-                },
-                {
-                  text: 'Desativar',
-                  style: 'destructive', 
-                  onPress: handleDeactivate,
-                },
-              ],
-              { cancelable: false }
-            )
-          }
-          style={styles.deactivateButton}
-        >
-          <Text style={styles.buttonText}>Desativar Conta</Text>
-        </TouchableOpacity>
-      </Animatable.View>
+      <ScrollView contentContainerStyle={[styles.container, { flexGrow: 1 }]}>
+        <Animatable.View animation="fadeInDown" style={styles.profileContainer}>
+          <Image source={getProfileImageUrl(userData.profile_image)} style={styles.profileImage} />
+          <Text style={styles.username}>{userData.name || 'Usuário'}</Text>
+        </Animatable.View>
 
-      {/* Modal para mudar senha */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.titlePassword}>Alterar Senha</Text>
-            <View style={styles.passwordContainer}>
+        <Animatable.View animation="fadeInUp" style={styles.content}>
+          {['name', 'email', 'phone_number', 'cpf_or_cnpj'].map((field) => (
+            <View key={field} style={styles.inputContainer}>
               <TextInput
-                value={passwords.oldPassword}
-                onChangeText={(text) => setPasswords({ ...passwords, oldPassword: text })}
-                secureTextEntry={!isPasswordVisible}
-                placeholder="Sua senha antiga"
-                style={styles.passwordInput} 
-              />
-              <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
-                <Icon name={isPasswordVisible ? 'eye-off' : 'eye'} size={24} color="#a1a1a1" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                value={passwords.newPassword}
+                style={!isEditing? styles.inputDisabled : styles.inputEnabled}
+                value={field === 'phone_number' ? formatPhoneNumber(userData[field]) : userData[field]}
+                editable={isEditing}
+                placeholder={field.replace('_', ' ')}
                 onChangeText={(text) => {
-                  setPasswords({ ...passwords, newPassword: text });
-                  validatePassword(text);
+                  const formattedText = field === 'cpforCnpj' ? text.replace(/\D/g, '') : text;
+                  setUserData((prev) => ({ ...prev, [field]: formattedText }));
+                  setUpdatedFields((prev) => ({ ...prev, [field]: formattedText }));
                 }}
-                secureTextEntry={!isPasswordVisible}
-                placeholder="Sua senha nova"
-                style={styles.passwordInput} 
               />
+
+              {field === 'phone_number' && phoneMessage && (
+                <View style={styles.phoneMessage}>
+                  <Text style={styles.phoneMessageText}>{phoneMessage}</Text>
+                </View>
+              )}
+              {/* Ícone ao lado do campo de telefone */}
+              {field === 'phone_number' && (
+                <Icon 
+                  name={isPhoneVerified ? 'checkmark-circle' : 'alert-circle'} 
+                  size={24} 
+                  color={isPhoneVerified ? 'green' : 'red'} 
+                  style={styles.icon} 
+                  onPress={() => {
+                    if (isPhoneVerified) {
+                      setPhoneMessage('Número verificado ✔');
+                      setTimeout(() => setPhoneMessage(null), 3000);
+                    } else {
+                      navigation.navigate('PhoneVerification');
+                    }
+                  }} 
+                />
+              )}
             </View>
-            <Text style={{ color: passwordColor, fontSize: 12, marginTop: 4 }}>{passwordMessage}</Text>
-            <TouchableOpacity onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")}> 
-              <Text>Esqueceu a senha?</Text>
+          ))}
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
+              <Text style={styles.buttonText}>Logout</Text>
             </TouchableOpacity>
-            <View style={styles.modalButtonsContainer}>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
-                <Text style={styles.buttonText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.saveButton} onPress={handleChangePassword}>
-                <Text style={styles.buttonText}>Salvar</Text>
+            <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
+              <Text style={styles.buttonText}>Mudar Senha</Text>
+            </TouchableOpacity>
+            <View style={{ backgroundColor: 'green', borderRadius: 8 }}>
+              <TouchableOpacity onPress={handleEditSave} style={{ padding: 10 }}>
+                <Icon name={isEditing ? 'save' : 'pencil'} size={24} color="white" />
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </Modal>
-    </ScrollView>
+
+          <View style={styles.separator} />
+
+          {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
+        
+          <TouchableOpacity
+            onPress={() =>
+              Alert.alert(
+                'Confirmar Desativação',
+                'Tem certeza de que deseja desativar sua conta?',
+                [
+                  {
+                    text: 'Cancelar',
+                    style: 'cancel',
+                  },
+                  {
+                    text: 'Desativar',
+                    style: 'destructive', 
+                    onPress: handleDeactivate,
+                  },
+                ],
+                { cancelable: false }
+              )
+            }
+            style={styles.deactivateButton}
+          >
+            <Text style={styles.buttonText}>Desativar Conta</Text>
+          </TouchableOpacity>
+        </Animatable.View>
+
+        {/* Modal para mudar senha */}
+        <Modal visible={modalVisible} transparent animationType="slide">
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.titlePassword}>Alterar Senha</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  value={passwords.oldPassword}
+                  onChangeText={(text) => setPasswords({ ...passwords, oldPassword: text })}
+                  secureTextEntry={!isPasswordVisible}
+                  placeholder="Sua senha antiga"
+                  style={styles.passwordInput} 
+                />
+                <TouchableOpacity onPress={togglePasswordVisibility} style={styles.iconContainer}>
+                  <Icon name={isPasswordVisible ? 'eye-off' : 'eye'} size={24} color="#a1a1a1" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  value={passwords.newPassword}
+                  onChangeText={(text) => {
+                    setPasswords({ ...passwords, newPassword: text });
+                    validatePassword(text);
+                  }}
+                  secureTextEntry={!isPasswordVisible}
+                  placeholder="Sua senha nova"
+                  style={styles.passwordInput} 
+                />
+              </View>
+              <Text style={{ color: passwordColor, fontSize: 12, marginTop: 4 }}>{passwordMessage}</Text>
+              <TouchableOpacity onPress={() => Alert.alert("Atenção", "Funcionalidade em desenvolvimento!")}> 
+                <Text>Esqueceu a senha?</Text>
+              </TouchableOpacity>
+              <View style={styles.modalButtonsContainer}>
+                <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                  <Text style={styles.buttonText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.saveButton} onPress={handleChangePassword}>
+                  <Text style={styles.buttonText}>Salvar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
+      <Footer/>
+    </View>
   );
 }
 

@@ -1,66 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import API_BASE_URL from '../../config';
-import Icon from 'react-native-vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 import * as Animatable from 'react-native-animatable';
+import Icon from 'react-native-vector-icons/Ionicons';
+import Footer from '../../components/Footer';
 
 export default function ServicesList() {
   const [services, setServices] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState('all');
-  const [userId, setUserId] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const navigation = useNavigation();
 
   useEffect(() => {
+    fetchServices();
+  }, [filter]);
+
+  const fetchServices = async () => {
     setIsLoading(true);
-  
-    const fetchUserId = async () => {
-      try {
-        const storedUserId = await AsyncStorage.getItem('userId');
-        if (storedUserId !== null) {
-          setUserId(parseInt(storedUserId, 10));
-        }
-      } catch (error) {
-        console.error('Erro ao recuperar userId:', error);
-      }
-    };
-  
-    fetchUserId();
-    fetchServicesUnsubscribed();
-  }, []);
-
-  const fetchServicesSubscribed = async () => {
-    setIsLoading(true);
-    try {
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
-            setErrorMessage('Usuário não autenticado.');
-            setIsLoading(false);
-            return;
-        }
-
-        const response = await axios.get(`${API_BASE_URL}/services/getSubscribedService`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (response.data && response.data.services && Array.isArray(response.data.services)) {
-            setServices(response.data.services);
-        } else {
-            console.error('Dados de serviços inválidos.', response.data);
-        }
-    } catch (error) {
-        console.error('Erro ao buscar os serviços:', error);
-    } finally {
-        setIsLoading(false);
-    }
-};
-
-  const fetchServicesUnsubscribed = async () => {
-    setIsLoading(true);
+    setErrorMessage('');
     try {
       const token = await AsyncStorage.getItem('token');
       if (!token) {
@@ -68,28 +29,32 @@ export default function ServicesList() {
         setIsLoading(false);
         return;
       }
-  
-      const response = await axios.get(`${API_BASE_URL}/services/getUnsubscribedService`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-  
-      if (response.data && response.data.services && Array.isArray(response.data.services)) {
-        setServices(response.data.services);
+      let url;
+      if (filter === 'subscriptions') {
+        url = `${API_BASE_URL}/services/getSubscribedService`;
+      } else if (filter === 'myServices') {
+        url = `${API_BASE_URL}/services/getMyServices`; // Nova rota
       } else {
-        console.error('Dados de serviços inválidos.', response.data);
+        url = `${API_BASE_URL}/services/getUnsubscribedService`;
+      }
+      
+      const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
+      const servicesData = response.data.services;
+      if (servicesData === 0 || !Array.isArray(servicesData)) {
+        setServices([]);
+      } else {
+        setServices(servicesData);
       }
     } catch (error) {
-      console.error('Erro ao buscar os serviços:', error);
+      setServices([])
+      // setErrorMessage(error.response?.data?.message || 'Erro ao carregar serviços.');
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   const subscribeService = async (service_id) => {
     setIsLoading(true);
-
     try {
       const token = await AsyncStorage.getItem('token');
       if (!token) {
@@ -97,30 +62,17 @@ export default function ServicesList() {
         setIsLoading(false);
         return;
       }
-
-      const response = await axios.post(
-        `${API_BASE_URL}/services/subscribe`,
-        { service_id, message: 'standard' },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.status === 201) {
-        await fetchServicesUnsubscribed();
-        setErrorMessage('');
-      }
+      await axios.post(`${API_BASE_URL}/services/subscribe`, { service_id, message: 'standard' }, { headers: { Authorization: `Bearer ${token}` } });
+      fetchServices();
     } catch (error) {
-      console.error("Erro ao se inscrever no serviço:", error);
-      setErrorMessage(
-        error.response?.data?.message || 'Erro ao tentar se inscrever. Tente novamente.'
-      );
+      setErrorMessage(error.response?.data?.message || 'Erro ao se inscrever.');
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const unsubscribeService = async (service_id) => {
     setIsLoading(true);
-
     try {
       const token = await AsyncStorage.getItem('token');
       if (!token) {
@@ -128,25 +80,14 @@ export default function ServicesList() {
         setIsLoading(false);
         return;
       }
-
-      const response = await axios.post(
-        `${API_BASE_URL}/services/unsubscribe/${service_id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.status === 201) {
-        await fetchServicesSubscribed();
-        setErrorMessage('');
-      }
+      await axios.delete(`${API_BASE_URL}/services/unsubscribe/${service_id}`, { headers: { Authorization: `Bearer ${token}` } });
+      fetchServices();
     } catch (error) {
-      console.error("Erro ao se desinscrever do serviço:", error);
-      setErrorMessage(
-        error.response?.data?.message || 'Erro ao tentar desinscrever. Tente novamente.'
-      );
+      setErrorMessage(error.response?.data?.message || 'Erro ao se desinscrever.');
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   return (
     <View style={styles.container}>
@@ -155,51 +96,35 @@ export default function ServicesList() {
           <ActivityIndicator size="large" color="#FFF" />
         </View>
       )}
-  
       <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
         <Text style={styles.message}>Se Inscreva em um!</Text>
       </Animatable.View>
-  
+
       <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'all' && styles.activeButton]}
-          onPress={() => setFilter('all')}
-        >
-        <Text style={styles.filterText}>Novos</Text>
+        <TouchableOpacity style={[styles.filterButton, filter === 'all' && styles.activeButton]} onPress={() => setFilter('all')}>
+          <Text style={styles.filterText}>Novos</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'subscriptions' && styles.activeButton]}
-          onPress={() => setFilter('subscriptions')}
-        >
-        <Text style={styles.filterText}>Inscrições</Text>
+        <TouchableOpacity style={[styles.filterButton, filter === 'subscriptions' && styles.activeButton]} onPress={() => setFilter('subscriptions')}>
+          <Text style={styles.filterText}>Inscrições</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, filter === 'mine' && styles.activeButton]}
-          onPress={() => setFilter('mine')}
-        >
-        <Text style={styles.filterText}>Meus</Text>
+        <TouchableOpacity style={[styles.filterButton, filter === 'myServices' && styles.activeButton]} onPress={() => setFilter('myServices')}>
+          <Text style={styles.filterText}>Meus</Text>
         </TouchableOpacity>
       </View>
 
       {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
 
       <Animatable.View animation="fadeInUp" style={styles.cardContainer}>
-        {filter === 'mine' && services.length === 0 ? (
-          <View style={styles.messageContainer}>
-            <Text style={styles.messageText}>Você não possui serviços cadastrados.</Text>
-            <TouchableOpacity style={styles.registerButton} onPress={() => navigation.navigate('ServicesRegister')}>
-              <Text style={styles.registerButtonText}>Publicar Serviço</Text>
-            </TouchableOpacity>
-          </View>
-        ) : services.length === 0 ? (
+        {services.length === 0 ? (
           <View style={styles.noRecordsContainer}>
-            <Text style={styles.noRecordsText}>Nenhum serviço disponível.</Text>
+            <Text style={styles.noRecordsText}>{errorMessage || "Nenhum serviço disponível."}</Text>
           </View>
         ) : (
           <FlatList
             data={services}
+            keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <View style={styles.card}>
+              <Animatable.View animation="fadeInUp" style={styles.card}>
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.contractor}>Contratante: {item.employer.name}</Text>
                 <Text style={styles.description}>{item.description}</Text>
@@ -214,26 +139,44 @@ export default function ServicesList() {
                 <Text style={styles.status}>
                   Status: <Text style={{ color: item.status === 'open' ? '#27ae60' : '#e74c3c' }}>{item.status}</Text>
                 </Text>
-
-                {/* Botão de inscrição ou desinscrição */}
-                {filter === 'subscriptions' ? (
-                  <TouchableOpacity style={styles.unsubscribeButton} onPress={() => unsubscribeService(item.id)}>
-                    <Text style={styles.subscribeButtonText}>Cancelar Inscrição</Text>
+              {filter === 'subscriptions' ? (
+                <TouchableOpacity
+                  style={styles.unsubscribeButton}
+                  onPress={() => unsubscribeService(item.applications?.[0]?.id)}
+                >
+                  <Text style={styles.subscribeButtonText}>Desinscrever-se</Text>
+                </TouchableOpacity>
+              ) : filter === 'myServices' ? (
+                <View style={styles.myServiceButtons}>
+                  <TouchableOpacity
+                    style={styles.editButton}
+                    onPress={() => /*navigation.navigate('EditService', { serviceId: item.id })*/ alert('Em desenvolvimento')}
+                  >
+                    <Text style={styles.subscribeButtonText}>Editar</Text>
                   </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity style={styles.subscribeButton} onPress={() => subscribeService(item.id)}>
-                    <Text style={styles.subscribeButtonText}>Me Inscrever</Text>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => alert('Em desenvolvimento') /*deleteService(item.id)*/}
+                  >
+                    <Text style={styles.subscribeButtonText}>Excluir</Text>
                   </TouchableOpacity>
-                )}
-              </View>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.subscribeButton}
+                  onPress={() => subscribeService(item.id)}
+                >
+                  <Text style={styles.subscribeButtonText}>Inscrever-se</Text>
+                </TouchableOpacity>
+              )}
+              </Animatable.View>
             )}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ paddingBottom: 20 }}
           />
         )}
       </Animatable.View>
+      <Footer/>
     </View>
-  );  
+  );
 }
 
 const styles = StyleSheet.create({
@@ -289,6 +232,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 15,
     marginTop: 10,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    marginTop: 10,
+    alignSelf: 'center',
   },
   card: {
     backgroundColor: '#fff',
@@ -358,5 +307,26 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#555',
     fontWeight: 'bold',
+  },
+  myServiceButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  editButton: {
+    backgroundColor: '#6382e0',
+    paddingVertical: 12,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
+    marginRight: 5,
+  },
+  deleteButton: {
+    backgroundColor: '#e74c3c',
+    paddingVertical: 12,
+    borderRadius: 8,
+    flex: 1,
+    alignItems: 'center',
+    marginLeft: 5,
   },
 });
