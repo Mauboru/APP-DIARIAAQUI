@@ -14,7 +14,7 @@ export default function Footer({ setSelected }) {
         style={[styles.button, { opacity: selected === 0 ? 1 : 0.5 }]} 
         onPress={() => navigation.navigate('ServicesRegister')}
       >
-        <Icon name={selected === 1 ? 'rocket' : 'rocket-outline'} size={24} color={'#212121'} />
+        <Icon name={selected === 0 ? 'rocket' : 'rocket-outline'} size={24} color={'#212121'} />
         <Text style={[styles.label, {  color: '#212121' }]}>Serviços</Text>
       </TouchableOpacity>
 
@@ -23,7 +23,7 @@ export default function Footer({ setSelected }) {
         style={[styles.button, { opacity: selected === 1 ? 1 : 0.5 }]} 
         onPress={() => navigation.navigate('ServicesList')}
       >
-        <Icon name={selected === 0 ? 'home' : 'home-outline'} size={24} color={'#212121'} />
+        <Icon name={selected === 1 ? 'home' : 'home-outline'} size={24} color={'#212121'} />
         <Text style={[styles.label, { color: '#212121' }]}>Início</Text>
       </TouchableOpacity>
 
@@ -32,7 +32,7 @@ export default function Footer({ setSelected }) {
         style={[styles.button, { opacity: selected === 2 ? 1 : 0.5 }]} 
         onPress={() => navigation.navigate('Profile')}
       >
-        <Icon name={selected === 1 ? 'person' : 'person-outline'} size={24} color={'#212121'} />
+        <Icon name={selected === 2 ? 'person' : 'person-outline'} size={24} color={'#212121'} />
         <Text style={[styles.label, { color: '#212121' }]}>Perfil</Text>
       </TouchableOpacity>
     </View>

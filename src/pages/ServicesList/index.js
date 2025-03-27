@@ -174,7 +174,7 @@ export default function ServicesList() {
           />
         )}
       </Animatable.View>
-      <Footer/>
+      <Footer setSelected={1}/>
     </View>
   );
 }

@@ -275,7 +275,7 @@ export default function ServicesRegister() {
           </TouchableOpacity>
         </Animatable.View>
       </ScrollView>
-      <Footer />
+      <Footer setSelected={0}/>
     </View>
   );
 };

@@ -338,7 +338,7 @@ export default function Profile() {
           </View>
         </Modal>
       </ScrollView>
-      <Footer/>
+      <Footer setSelected={2}/>
     </View>
   );
 }
