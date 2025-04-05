@@ -3,51 +3,51 @@ import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity }
 import API_BASE_URL from '../../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { useNavigation } from '@react-navigation/native';
 import * as Animatable from 'react-native-animatable';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Footer from '../../components/Footer';
 
 export default function ServicesList() {
+  const [token, setToken] = useState('');
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState('all');
-  const [errorMessage, setErrorMessage] = useState('');
-  const navigation = useNavigation();
 
+  // Buscando token ao iniciar a tela
   useEffect(() => {
-    fetchServices();
+    (async () => {
+      const storedToken = await AsyncStorage.getItem('token');
+      if (storedToken) setToken(storedToken);
+    })();
+  }, []);
+
+  // Buscando servicos ao atualizar a tela
+  useEffect(() => {
+    getServices();
   }, [filter]);
 
-  const fetchServices = async () => {
+  const getServices = async () => {
     setIsLoading(true);
-    setErrorMessage('');
+    setServices([]);
     try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        setErrorMessage('Usuário não autenticado.');
-        setIsLoading(false);
-        return;
-      }
       let url;
+
       if (filter === 'subscriptions') {
         url = `${API_BASE_URL}/services/getSubscribedService`;
       } else if (filter === 'myServices') {
-        url = `${API_BASE_URL}/services/getMyServices`; // Nova rota
+        url = `${API_BASE_URL}/services/getMyServices`;
       } else {
         url = `${API_BASE_URL}/services/getUnsubscribedService`;
       }
       
       const response = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
       const servicesData = response.data.services;
-      if (servicesData === 0 || !Array.isArray(servicesData)) {
-        setServices([]);
-      } else {
-        setServices(servicesData);
-      }
+
+      if (servicesData === 0) setServices([]);
+      else setServices(servicesData);
     } catch (error) {
       setServices([])
-      // setErrorMessage(error.response?.data?.message || 'Erro ao carregar serviços.');
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -56,16 +56,10 @@ export default function ServicesList() {
   const subscribeService = async (service_id) => {
     setIsLoading(true);
     try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        setErrorMessage('Usuário não autenticado.');
-        setIsLoading(false);
-        return;
-      }
       await axios.post(`${API_BASE_URL}/services/subscribe`, { service_id, message: 'standard' }, { headers: { Authorization: `Bearer ${token}` } });
-      fetchServices();
+      getServices();
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || 'Erro ao se inscrever.');
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -74,16 +68,10 @@ export default function ServicesList() {
   const unsubscribeService = async (service_id) => {
     setIsLoading(true);
     try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        setErrorMessage('Usuário não autenticado.');
-        setIsLoading(false);
-        return;
-      }
       await axios.delete(`${API_BASE_URL}/services/unsubscribe/${service_id}`, { headers: { Authorization: `Bearer ${token}` } });
-      fetchServices();
+      getServices();
     } catch (error) {
-      setErrorMessage(error.response?.data?.message || 'Erro ao se desinscrever.');
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -91,15 +79,15 @@ export default function ServicesList() {
 
   return (
     <View style={styles.container}>
-      {isLoading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#FFF" />
-        </View>
-      )}
+      {/* Loading */}
+      {isLoading && (<View style={styles.loadingOverlay}><ActivityIndicator size="large" color="#FFF"/></View> )}
+      
+      {/* Titulo */}
       <Animatable.View animation="fadeInLeft" delay={500} style={styles.containerHeader}>
         <Text style={styles.message}>Se Inscreva em um!</Text>
       </Animatable.View>
 
+      {/* Filtros */}
       <View style={styles.filterContainer}>
         <TouchableOpacity style={[styles.filterButton, filter === 'all' && styles.activeButton]} onPress={() => setFilter('all')}>
           <Text style={styles.filterText}>Novos</Text>
@@ -112,12 +100,11 @@ export default function ServicesList() {
         </TouchableOpacity>
       </View>
 
-      {errorMessage !== '' && <Text style={styles.errorText}>{errorMessage}</Text>}
-
+      {/* Cards */}
       <Animatable.View animation="fadeInUp" style={styles.cardContainer}>
         {services.length === 0 ? (
           <View style={styles.noRecordsContainer}>
-            <Text style={styles.noRecordsText}>{errorMessage || "Nenhum serviço disponível."}</Text>
+            <Text style={styles.noRecordsText}>{"Nenhum serviço disponível."}</Text>
           </View>
         ) : (
           <FlatList
@@ -126,54 +113,69 @@ export default function ServicesList() {
             renderItem={({ item }) => (
               <Animatable.View animation="fadeInUp" style={styles.card}>
                 <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.contractor}>Contratante: {item.employer.name}</Text>
-                <Text style={styles.description}>{item.description}</Text>
-                <View style={styles.locationContainer}>
-                  <Icon name="location" size={20} color="red" />
-                  <Text>{item.location}</Text>
-                </View>
-                <Text>{item.date_initial} - {item.date_final}</Text>
-                <Text style={styles.pay}>
-                  Pagamento: <Text style={{ color: '#27ae60' }}>R${item.pay}</Text>
-                </Text>
-                <Text style={styles.status}>
-                  Status: <Text style={{ color: item.status === 'open' ? '#27ae60' : '#e74c3c' }}>{item.status}</Text>
-                </Text>
-              {filter === 'subscriptions' ? (
-                <TouchableOpacity
-                  style={styles.unsubscribeButton}
-                  onPress={() => unsubscribeService(item.applications?.[0]?.id)}
-                >
-                  <Text style={styles.subscribeButtonText}>Desinscrever-se</Text>
-                </TouchableOpacity>
-              ) : filter === 'myServices' ? (
-                <View style={styles.myServiceButtons}>
-                  <TouchableOpacity
-                    style={styles.editButton}
-                    onPress={() => /*navigation.navigate('EditService', { serviceId: item.id })*/ alert('Em desenvolvimento')}
-                  >
-                    <Text style={styles.subscribeButtonText}>Editar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.deleteButton}
-                    onPress={() => alert('Em desenvolvimento') /*deleteService(item.id)*/}
-                  >
-                    <Text style={styles.subscribeButtonText}>Excluir</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  style={styles.subscribeButton}
-                  onPress={() => subscribeService(item.id)}
-                >
-                  <Text style={styles.subscribeButtonText}>Inscrever-se</Text>
-                </TouchableOpacity>
-              )}
+
+                {filter === 'myServices' ? (
+                  <>
+                    <Text style={styles.status}>Status: {item.status}</Text>
+                    <Text style={styles.pay}>Pagamento: {item.pay}</Text>
+                    <Text>Você tem {item.qtdWorkers} inscritos!</Text>
+                    <View style={styles.myServiceButtons}>
+                      {/* Botao Editar */}
+                      <TouchableOpacity
+                        style={styles.editButton}
+                        onPress={() => alert('Em desenvolvimento')}
+                      >
+                        <Text style={styles.subscribeButtonText}>Editar</Text>
+                      </TouchableOpacity>
+                      {/* Botao Excluir */}
+                      <TouchableOpacity
+                        style={styles.deleteButton}
+                        onPress={() => alert('Em desenvolvimento')}
+                      >
+                        <Text style={styles.subscribeButtonText}>Excluir</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.contractor}>Contratante: {item.employer.name}</Text>
+                    <Text style={styles.description}>{item.description}</Text>
+                    <View style={styles.locationContainer}>
+                      <Icon name="location" size={20} color="red" />
+                      <Text>{item.location}</Text>
+                    </View>
+                    <Text>{item.date_initial} - {item.date_final}</Text>
+                    <Text style={styles.pay}>
+                      Pagamento: <Text style={{ color: '#27ae60' }}>R${item.pay}</Text>
+                    </Text>
+                    <Text style={styles.status}>
+                      Status: <Text style={{ color: item.status === 'open' ? '#27ae60' : '#e74c3c' }}>{item.status}</Text>
+                    </Text>
+
+                    {filter === 'subscriptions' ? (
+                      <TouchableOpacity
+                        style={styles.unsubscribeButton}
+                        onPress={() => unsubscribeService(item.applications?.[0]?.id)}
+                      >
+                        <Text style={styles.subscribeButtonText}>Desinscrever-se</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        style={styles.subscribeButton}
+                        onPress={() => subscribeService(item.id)}
+                      >
+                        <Text style={styles.subscribeButtonText}>Inscrever-se</Text>
+                      </TouchableOpacity>
+                    )}
+                  </>
+                )}
               </Animatable.View>
             )}
           />
         )}
       </Animatable.View>
+
+      {/* Footer */}
       <Footer setSelected={1}/>
     </View>
   );
