@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
-import API_BASE_URL from '../../config';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Pressable } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import Icon from 'react-native-vector-icons/Ionicons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import API_BASE_URL from '../../config';
 import Footer from '../../components/Footer';
+import { useNavigation } from '@react-navigation/native';
 
 export default function ServicesList() {
   const [token, setToken] = useState('');
   const [services, setServices] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [filter, setFilter] = useState('all');
+  const navigation = useNavigation();
 
   // Buscando token ao iniciar a tela
   useEffect(() => {
@@ -111,65 +113,66 @@ export default function ServicesList() {
             data={services}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <Animatable.View animation="fadeInUp" style={styles.card}>
-                <Text style={styles.title}>{item.title}</Text>
-
-                {filter === 'myServices' ? (
-                  <>
-                    <Text style={styles.status}>Status: {item.status}</Text>
-                    <Text style={styles.pay}>Pagamento: {item.pay}</Text>
-                    <Text>Você tem {item.qtdWorkers} inscritos!</Text>
-                    <View style={styles.myServiceButtons}>
-                      {/* Botao Editar */}
-                      <TouchableOpacity
-                        style={styles.editButton}
-                        onPress={() => alert('Em desenvolvimento')}
+              <Pressable
+                onPress={() => navigation.navigate('ServicesDetails', { service: item })}
+                android_ripple={{ color: '#ccc' }}
+                style={({ pressed }) => [
+                  { opacity: pressed ? 0.8 : 1 },
+                ]}
+              >
+                <Animatable.View animation="fadeInUp" style={styles.card}>
+                  <Text style={styles.title}>{item.title}</Text>
+            
+                  {filter === 'myServices' ? (
+                    <>
+                      <Text
+                        style={[
+                          styles.status,
+                          item.status === 'Aberto' && { backgroundColor: 'green', color: 'white' },
+                          item.status === 'Andamento' && { backgroundColor: 'orange', color: 'white' },
+                          item.status === 'Concluido' && { backgroundColor: 'blue', color: 'white' },
+                        ]}
                       >
-                        <Text style={styles.subscribeButtonText}>Editar</Text>
-                      </TouchableOpacity>
-                      {/* Botao Excluir */}
-                      <TouchableOpacity
-                        style={styles.deleteButton}
-                        onPress={() => alert('Em desenvolvimento')}
-                      >
-                        <Text style={styles.subscribeButtonText}>Excluir</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </>
-                ) : (
-                  <>
-                    <Text style={styles.contractor}>Contratante: {item.employer.name}</Text>
-                    <Text style={styles.description}>{item.description}</Text>
-                    <View style={styles.locationContainer}>
-                      <Icon name="location" size={20} color="red" />
-                      <Text>{item.location}</Text>
-                    </View>
-                    <Text>{item.date_initial} - {item.date_final}</Text>
-                    <Text style={styles.pay}>
-                      Pagamento: <Text style={{ color: '#27ae60' }}>R${item.pay}</Text>
-                    </Text>
-                    <Text style={styles.status}>
-                      Status: <Text style={{ color: item.status === 'open' ? '#27ae60' : '#e74c3c' }}>{item.status}</Text>
-                    </Text>
-
-                    {filter === 'subscriptions' ? (
-                      <TouchableOpacity
-                        style={styles.unsubscribeButton}
-                        onPress={() => unsubscribeService(item.applications?.[0]?.id)}
-                      >
-                        <Text style={styles.subscribeButtonText}>Desinscrever-se</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <TouchableOpacity
-                        style={styles.subscribeButton}
-                        onPress={() => subscribeService(item.id)}
-                      >
-                        <Text style={styles.subscribeButtonText}>Inscrever-se</Text>
-                      </TouchableOpacity>
-                    )}
-                  </>
-                )}
-              </Animatable.View>
+                        Status: {item.status}
+                      </Text>
+                      <Text style={styles.pay}>Pagamento: {item.pay}</Text>
+                      <Text>Você tem {item.qtdWorkers} inscritos!</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.contractor}>Contratante: {item.employer.name}</Text>
+                      <Text style={styles.description}>{item.description}</Text>
+                      <View style={styles.locationContainer}>
+                        <Icon name="location" size={20} color="red" />
+                        <Text>{item.location}</Text>
+                      </View>
+                      <Text>{item.date_initial} - {item.date_final}</Text>
+                      <Text style={styles.pay}>
+                        Pagamento: <Text style={{ color: '#27ae60' }}>R${item.pay}</Text>
+                      </Text>
+                      <Text style={styles.status}>
+                        Status: <Text style={{ color: item.status === 'open' ? '#27ae60' : '#e74c3c' }}>{item.status}</Text>
+                      </Text>
+            
+                      {filter === 'subscriptions' ? (
+                        <TouchableOpacity
+                          style={styles.unsubscribeButton}
+                          onPress={() => unsubscribeService(item.applications?.[0]?.id)}
+                        >
+                          <Text style={styles.subscribeButtonText}>Desinscrever-se</Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.subscribeButton}
+                          onPress={() => subscribeService(item.id)}
+                        >
+                          <Text style={styles.subscribeButtonText}>Inscrever-se</Text>
+                        </TouchableOpacity>
+                      )}
+                    </>
+                  )}
+                </Animatable.View>
+              </Pressable>
             )}
           />
         )}
@@ -234,12 +237,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 15,
     marginTop: 10,
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 14,
-    marginTop: 10,
-    alignSelf: 'center',
   },
   card: {
     backgroundColor: '#fff',
@@ -309,26 +306,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#555',
     fontWeight: 'bold',
-  },
-  myServiceButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  editButton: {
-    backgroundColor: '#6382e0',
-    paddingVertical: 12,
-    borderRadius: 8,
-    flex: 1,
-    alignItems: 'center',
-    marginRight: 5,
-  },
-  deleteButton: {
-    backgroundColor: '#e74c3c',
-    paddingVertical: 12,
-    borderRadius: 8,
-    flex: 1,
-    alignItems: 'center',
-    marginLeft: 5,
   },
 });

@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
-import { Welcome, SignIn, ServicesList, Profile, Register, ServicesRegister, PhoneVerification } from '../pages';
+import { Welcome, SignIn, ServicesList, Profile, Register, ServicesRegister, PhoneVerification, ServicesDetails } from '../pages';
 import PrivateRoute from './PrivateRoute';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -32,17 +32,24 @@ export default function Routes() {
           </PrivateRoute>
         )}
       </Stack.Screen>
-      <Stack.Screen name="Profile">
-        {(props) => (
-          <PrivateRoute navigation={props.navigation}>
-            <Profile {...props} />
-          </PrivateRoute>
-        )}
-      </Stack.Screen>
       <Stack.Screen name="ServicesRegister">
         {(props) => (
           <PrivateRoute navigation={props.navigation}>
             <ServicesRegister {...props} />
+          </PrivateRoute>
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="ServicesDetails">
+        {(props) => (
+          <PrivateRoute navigation={props.navigation}>
+            <ServicesDetails {...props} />
+          </PrivateRoute>
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="Profile">
+        {(props) => (
+          <PrivateRoute navigation={props.navigation}>
+            <Profile {...props} />
           </PrivateRoute>
         )}
       </Stack.Screen>

@@ -5,3 +5,4 @@ export { default as Welcome } from './Welcome';
 export { default as Register } from './Register';
 export { default as ServicesRegister } from './ServicesRegister';
 export { default as PhoneVerification } from './PhoneVerification';
+export { default as ServicesDetails } from './ServicesDetails';
